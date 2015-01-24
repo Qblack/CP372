@@ -67,10 +67,7 @@ public final class Server {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
             // Get the request line of the HTTP request message.
-            String requestLine = null;//reader.readLine();
-            while ((requestLine = reader.readLine()).length() != 0) {
-                System.out.println(requestLine);
-            }
+            String requestLine = reader.readLine();
 
             // Extract the filename from the request line.
             StringTokenizer tokens = new StringTokenizer(requestLine);
