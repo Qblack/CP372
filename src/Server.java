@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 public final class Server {
 	
 	//---ProtocolExceptions----------
-	public class ProtocolException extends Exception{
+	public static class ProtocolException extends Exception{
 		public ProtocolException (String msg){
 			super (msg);
 		}
