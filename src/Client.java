@@ -64,9 +64,9 @@ public class Client {
 	    		int portNum = Integer.parseInt(m_portText.getText());
 	    		
 	    		try {
-	    				Socket socket = new Socket(ipAddr, portNum);
-	    				m_out = new PrintWriter (socket.getOutputStream(), true);
-	    				m_in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+	    				m_socket = new Socket(ipAddr, portNum);
+	    				m_out = new PrintWriter (m_socket.getOutputStream(), true);
+	    				m_in = new BufferedReader(new InputStreamReader(m_socket.getInputStream()));
 	    		}
 	    		
 	    		catch (IndexOutOfBoundsException e) {
@@ -74,25 +74,18 @@ public class Client {
 	    		} catch (IOException e) {
 	    		    System.err.println("Caught IOException: " + e.getMessage());
 	    		}
-	    		
-	    		finally {
-	    		} 
-	    	  }
+ 	    	  }
 	    	});
 	        
 	        m_disconnectButton.addActionListener(new ActionListener() {
-		    	  public void actionPerformed(ActionEvent evt) {
-	    		    if (m_out != null) { 
-	    		        System.out.println("Closing PrintWriter");
-	    		        m_out.close(); 
-	    		    } else { 
-	    		        System.out.println("PrintWriter not open");
-	    		    }   
-	    		    try {
-						m_socket.close();
-					} catch (IOException e) {
-						System.out.print("Socket not open");
-					}
+		    	  public void actionPerformed(ActionEvent evt) { 
+		    		  try{
+							m_out.close();
+							m_in.close();
+							m_socket.close();
+						}catch (IOException e){
+							System.out.println(e);
+						}
 		    	  }
 		    });
         }
