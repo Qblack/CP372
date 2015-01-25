@@ -103,12 +103,41 @@ public final class Server {
                     handleTriangleGets(tokens,resultShapes);
                     break;
                 case "Q":
-                    System.out.print("Quad request received");
+                    handleQuadrilateralGets(tokens, resultShapes);
                     break;
                 default:
                     throw new Exception("400 Invalid request");
             }
             return resultShapes;
+        }
+
+        private void handleQuadrilateralGets(StringTokenizer tokens, Vector<Shape> resultShapes) throws Exception {
+            String request = tokens.nextToken();
+
+            Stream<Quadrilateral> quadrilateralStream = m_shapes.stream()
+                    .filter(shape -> shape instanceof Quadrilateral)
+                    .map(q -> (Quadrilateral) q);
+
+            if(request.toLowerCase().equals("square")){
+                quadrilateralStream.filter(Quadrilateral::isSquare).forEach(resultShapes::add);
+            }else if(request.toLowerCase().equals("rectangle")) {
+                quadrilateralStream.filter(Quadrilateral::isRectangle).forEach(resultShapes::add);
+            }else if(request.toLowerCase().equals("rhombus")) {
+                quadrilateralStream.filter(Quadrilateral::isRhombus).forEach(resultShapes::add);
+            }else if(request.toLowerCase().equals("parallelogram")) {
+                quadrilateralStream.filter(Quadrilateral::isParallelogram).forEach(resultShapes::add);
+            }else if(request.toLowerCase().equals("convex")) {
+                quadrilateralStream.filter(Quadrilateral::isConvex).forEach(resultShapes::add);
+            }else if(request.toLowerCase().equals("concave")) {
+                quadrilateralStream.filter(q-> !q.isConvex()).forEach(resultShapes::add);
+            }else if(request.toLowerCase().equals("trapezoid")) {
+                quadrilateralStream.filter(Quadrilateral::isTrapezoid).forEach(resultShapes::add);
+            }else if(request.matches("^\\d+$")){
+                int numberOf = Integer.parseInt(request);
+                quadrilateralStream.filter(t -> t.getCount() >= numberOf).forEach(resultShapes::add);
+            }else{
+                throw new Exception("400 Unsupported Quadrilateral Request");
+            }
         }
 
         private void handleTriangleGets(StringTokenizer tokens, Vector<Shape> resultShapes) throws Exception {
@@ -254,6 +283,9 @@ public final class Server {
             }
         }
 
+        public boolean isTrapezoid() {
+            return m_trapezoid;
+        }
 
 
         public class Line {
@@ -294,7 +326,6 @@ public final class Server {
                 return 1;
             }
         }
-
         private int getBottomLeft() {
             Point bottomLeft = super.points.elementAt(0);
             int bottomLeftIndex = 0;
@@ -312,7 +343,6 @@ public final class Server {
             }
             return bottomLeftIndex;
         }
-
 
         @Override
         public boolean equals(Object other) {
