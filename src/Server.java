@@ -185,6 +185,14 @@ public final class Server {
                     throw new Exception("400 Not a triangle");
                 }
             }else if(points.size()==4){
+                //TODO Check for reflexive
+                Quadrilateral quad = new Quadrilateral(points);
+                int indexOfAlready = m_shapes.indexOf(quad);
+                if(indexOfAlready>=0){
+                    m_shapes.elementAt(indexOfAlready).incrementCount();
+                }else{
+                    m_shapes.add(quad);
+                }
                 shapeType = ShapeType.Quadrilateral;
             }
             return shapeType;
@@ -345,13 +353,30 @@ public final class Server {
         }
 
         @Override
-        public boolean equals(Object other) {
-            return false;
+        public boolean equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }else if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final Quadrilateral other = (Quadrilateral) obj;
+            Boolean equal = true;
+            for (Point point : other.points) {
+                if(!super.points.contains(point)){
+                    equal = false;
+                }
+            }
+            return equal;
         }
 
         @Override
         public String toString() {
-            return null;
+            String output = "";
+            for (Point point : this.points) {
+                output+= point.toString()+",";
+            }
+
+            return output;
         }
 
         public boolean isConvex() {
@@ -442,7 +467,7 @@ public final class Server {
         public String toString() {
             String output = "";
             for (Point point : this.points) {
-                output+= ","+point.toString();
+                output+= point.toString()+",";
             }
             return output;
         }
