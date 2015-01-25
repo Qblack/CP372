@@ -189,6 +189,8 @@ public final class Server {
         public abstract String toString();
     }
 
+
+    /* Currently must be given in counter clock wise order from farthest left and lowest point */
     private static class Quadrilateral extends Shape {
         private boolean m_rectangle = false;
         private boolean m_square = false;
@@ -204,19 +206,14 @@ public final class Server {
             Point third = super.points.get(2);
             Point fourth = super.points.get(3);
 
-            int a2 = first.distanceSquared(second);
-            int b2 = first.distanceSquared(third);
-            int c2 = second.distanceSquared(fourth);
-            int d2 = second.distanceSquared(third);
+            int bottom2 = first.distanceSquared(second);
+            int right2 = second.distanceSquared(third);
+            int top2 = third.distanceSquared(fourth);
+            int left2 = fourth.distanceSquared(first);
 
-            ArrayList<Integer> distances = new ArrayList<>();
-            distances.add(a2);
-            distances.add(b2);
-            distances.add(c2);
-            Collections.sort(distances);
-            c2 = distances.remove(2);
-            b2 = distances.remove(1);
-            a2 = distances.remove(0);
+            if( bottom2==right2&&right2==top2 &&top2==left2){
+                this.m_rhombus = true;
+            }
 
         }
 
