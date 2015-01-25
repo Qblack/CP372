@@ -67,23 +67,21 @@ public final class Server {
         private void processRequest() throws Exception{
             InputStream inputStream = m_socket.getInputStream();
             DataOutputStream outputStream = new DataOutputStream(m_socket.getOutputStream());
-
-
             // Set up input stream filters.
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
             // Get the request line of the HTTP request message.
             String requestLine = reader.readLine();
 
-            System.out.print(requestLine);
-
-            if (requestLine != null && !requestLine.isEmpty()){
-            	System.out.print("DATA");
+            while(requestLine!=null){
+                System.out.println(requestLine);
                 StringTokenizer tokens = new StringTokenizer(requestLine);
                 String method = tokens.nextToken();
                 if (Objects.equals(method, "GET")){
                     System.out.print("GET request made");
                     handleGet(tokens);
+                    outputStream.writeBytes("POTATO");
+                    outputStream.writeBytes(CRLF);
                 }else if (Objects.equals(method, "POST")){
                     System.out.print("POST request made");
                     ShapeType shapeType = handlePost(tokens);
@@ -92,10 +90,10 @@ public final class Server {
                 }else{
                     throw new Exception(String.valueOf(405));
                 }
+                requestLine = reader.readLine();
             }
-            else {
-                System.out.print("Connected");
-            }
+
+
         }
 
         private void handleGet(StringTokenizer tokens) throws Exception {

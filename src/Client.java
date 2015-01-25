@@ -124,13 +124,23 @@ public class Client {
             
             m_postButton.addActionListener(new ActionListener() {
           	  public void actionPerformed(ActionEvent evt) {
-          		System.out.print("posting ...");
-          	  }
+                m_out.println("POST " + m_inputText.getText());
+                  try {
+                      System.out.println(m_in.readLine());
+                  } catch (IOException e) {
+                      e.printStackTrace();
+                  }
+              }
             });
             
             m_getButton.addActionListener(new ActionListener() {
           	  public void actionPerformed(ActionEvent evt) {
-          		 m_out.println("GET " + m_inputText.getText());
+                  m_out.println("GET " + m_inputText.getText());
+                  try {
+                      System.out.println(m_in.readLine());
+                  } catch (IOException e) {
+                      e.printStackTrace();
+                  }
           	  }
             });
         }
