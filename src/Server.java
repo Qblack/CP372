@@ -4,6 +4,7 @@ import java.lang.Exception;
 import java.lang.System;
 import java.net.* ;
 import java.util.* ;
+import java.util.stream.Stream;
 
 public final class Server {
 
@@ -78,12 +79,12 @@ public final class Server {
                 StringTokenizer tokens = new StringTokenizer(requestLine);
                 String method = tokens.nextToken();
                 if (Objects.equals(method, "GET")){
-                    System.out.print("GET request made");
-                    handleGet(tokens);
-                    outputStream.writeBytes("POTATO");
+                    Vector<Shape> results = handleGet(tokens);
+                    for (Shape result : results) {
+                        outputStream.writeBytes(result.toString()+"\n");
+                    }
                     outputStream.writeBytes(CRLF);
                 }else if (Objects.equals(method, "POST")){
-                    System.out.print("POST request made");
                     ShapeType shapeType = handlePost(tokens);
                     outputStream.writeBytes("OK "+ shapeType);
                     outputStream.writeBytes(CRLF);
@@ -92,15 +93,14 @@ public final class Server {
                 }
                 requestLine = reader.readLine();
             }
-
-
         }
 
-        private void handleGet(StringTokenizer tokens) throws Exception {
+        private Vector<Shape> handleGet(StringTokenizer tokens) throws Exception {
             String shapeType = tokens.nextToken();
+            Vector<Shape> resultShapes = new Vector<>();
             switch (shapeType) {
                 case "T":
-                    handleTriangleGets(tokens);
+                    handleTriangleGets(tokens,resultShapes);
                     break;
                 case "Q":
                     System.out.print("Quad request received");
@@ -108,15 +108,28 @@ public final class Server {
                 default:
                     throw new Exception("400 Invalid request");
             }
+            return resultShapes;
         }
 
-        private void handleTriangleGets(StringTokenizer tokens) {
+        private void handleTriangleGets(StringTokenizer tokens, Vector<Shape> resultShapes) throws Exception {
             String request = tokens.nextToken();
 
+            Stream<Triangle> triangleStream = m_shapes.stream()
+                    .filter(shape -> shape instanceof Triangle)
+                    .map(t -> (Triangle) t);
             if(request.toLowerCase().equals("right")){
-                m_shapes.stream().filter(shape -> shape instanceof Triangle)
-                        .map(t -> (Triangle) t)
-                        .filter(Triangle::isRightAngled).forEach(System.out::println);
+                triangleStream.filter(Triangle::isRightAngled).forEach(resultShapes::add);
+            }else if(request.toLowerCase().equals("isosceles")) {
+                triangleStream.filter(Triangle::isIsosceles).forEach(resultShapes::add);
+            }else if(request.toLowerCase().equals("equilateral")) {
+                triangleStream.filter(Triangle::isEquilateral).forEach(resultShapes::add);
+            }else if(request.toLowerCase().equals("scalene")) {
+                triangleStream.filter(Triangle::isScalene).forEach(resultShapes::add);
+            }else if(request.matches("^\\d+$")){
+                int numberOf = Integer.parseInt(request);
+                triangleStream.filter(t->t.getCount()==numberOf).forEach(resultShapes::add);
+            }else{
+                throw new Exception("400 Unsupported Triangle Request");
             }
         }
 
@@ -164,7 +177,6 @@ public final class Server {
         public Vector<Point> points;
         public int count = 0;
 
-
         public void incrementCount() {
             this.count++;
         }
@@ -173,7 +185,8 @@ public final class Server {
             return count;
         }
 
-        public abstract boolean equals(Triangle other);
+        public abstract boolean equals(Object other);
+        public abstract String toString();
     }
 
     private static class Triangle extends Shape {
@@ -207,11 +220,11 @@ public final class Server {
                 if(a2 == b2 && a2 == c2){
                     this.isEquilateral = true;
                     this.isIsosceles = true;
-                }else if (a2==b2 || a2==c2|| c2==b2){
+                }else if (c2==(a2+b2)){
                     this.isIsosceles = true;
-                }else if(c2==(a2+b2)){
                     this.isRightAngled = true;
-                    this.isScalene = true;
+                }else if(a2==b2 || a2==c2|| c2==b2){
+                    this.isIsosceles = true;
                 }else{
                     this.isScalene = true;
                 }
@@ -221,7 +234,15 @@ public final class Server {
         }
 
         @Override
-        public boolean equals(Triangle other){
+        public boolean equals(Object obj){
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final Triangle other = (Triangle) obj;
+
             Boolean equal = true;
             for (Point point : other.points) {
                 if(!super.points.contains(point)){
@@ -229,6 +250,15 @@ public final class Server {
                 }
             }
             return equal;
+        }
+
+        @Override
+        public String toString() {
+            String output = "";
+            for (Point point : this.points) {
+                output+= ","+point.toString();
+            }
+            return output;
         }
 
         public Boolean isEquilateral() {
@@ -245,8 +275,6 @@ public final class Server {
             return this.isScalene;
         }
 
-
-
         public Boolean isTriangle() {
             return this.isTriangle;
         }
@@ -260,18 +288,33 @@ public final class Server {
             this.x = x;
             this.y = y;
         }
-
         public int getY() {
             return this.y;
         }
-
         public int getX() {
             return this.x;
         }
-
         public int distanceSquared(Point other){
             return (int) (Math.pow((other.getX()- this.x),2) + Math.pow((other.getY() - this.y),2));
         }
+
+        @Override
+        public boolean equals(Object obj){
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final Point other = (Point) obj;
+            return this.x == other.x && this.y == other.y;
+        }
+
+        @Override
+        public String toString(){
+            return "("+this.x+","+this.y+")";
+        }
+
     }
 }
 
