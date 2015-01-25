@@ -187,13 +187,15 @@ public final class Server {
             }else if(points.size()==4){
                 //TODO Check for reflexive
                 Quadrilateral quad = new Quadrilateral(points);
-                int indexOfAlready = m_shapes.indexOf(quad);
-                if(indexOfAlready>=0){
-                    m_shapes.elementAt(indexOfAlready).incrementCount();
-                }else{
-                    m_shapes.add(quad);
+                if(quad.isQuadrilateral()){
+                    int indexOfAlready = m_shapes.indexOf(quad);
+                    if(indexOfAlready>=0){
+                        m_shapes.elementAt(indexOfAlready).incrementCount();
+                    }else{
+                        m_shapes.add(quad);
+                    }
+                    shapeType = ShapeType.Quadrilateral;
                 }
-                shapeType = ShapeType.Quadrilateral;
             }
             return shapeType;
         }
@@ -230,6 +232,7 @@ public final class Server {
 
     /* Currently must be given in counter clock wise order from farthest left and lowest point */
     private static class Quadrilateral extends Shape {
+        private final boolean isQuadrilateral;
         private boolean m_trapezoid = false;
         private boolean m_rectangle = false;
         private boolean m_square = false;
@@ -239,9 +242,11 @@ public final class Server {
 
         public Quadrilateral(Vector<Point> points){
             super.points=points;
+            this.isQuadrilateral = checkIfPointsAreEqual();
+
             orderPoints();
             Point a = super.points.get(0);
-            Point b =super.points.get(1);
+            Point b = super.points.get(1);
             Point c = super.points.get(2);
             Point d = super.points.get(3);
 
@@ -272,6 +277,17 @@ public final class Server {
             }
         }
 
+        private boolean checkIfPointsAreEqual() {
+            if(super.points.get(0) == super.points.get(1)||
+                    super.points.get(0) == super.points.get(2)||
+                    super.points.get(0) == super.points.get(3)){
+                return true;
+            }else if(super.points.get(1) == super.points.get(2)||
+                    super.points.get(1) == super.points.get(3)) {
+                return true;
+            }else return super.points.get(2) == super.points.get(3);
+        }
+
         /**
          * Orders point counter clockwise, a b c d
          */
@@ -293,6 +309,10 @@ public final class Server {
 
         public boolean isTrapezoid() {
             return m_trapezoid;
+        }
+
+        public boolean isQuadrilateral() {
+            return isQuadrilateral;
         }
 
 
@@ -375,7 +395,6 @@ public final class Server {
             for (Point point : this.points) {
                 output+= point.toString()+",";
             }
-
             return output;
         }
 
