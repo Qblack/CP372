@@ -14,6 +14,7 @@ public class Client {
 	static Socket m_socket = null;
 	static PrintWriter m_out = null;
 	static BufferedReader m_in = null;
+	static JTextArea m_display = new JTextArea(3,10);
 	
     private static void createAndShowGUI() {
     	final MainView view = new Client.MainView();
@@ -117,22 +118,28 @@ public class Client {
             m_postButton.addActionListener(new ActionListener() {
           	  public void actionPerformed(ActionEvent evt) {
                 m_out.println("POST " + m_inputText.getText());
-//                  try {
-//                      System.out.println(m_in.readLine());
-//                  } catch (IOException e) {
-//                      //e.printStackTrace();
-//                  }
-              }
+
+                try {
+                	String line_out = m_in.readLine();
+		                if ( line_out!= null){
+		                	m_display.replaceRange(line_out, 0, m_display.getText().length());
+		                }
+					}catch (IOException e) {
+					}
+            	}
             });
             
             m_getButton.addActionListener(new ActionListener() {
           	  public void actionPerformed(ActionEvent evt) {
                   m_out.println("GET " + m_inputText.getText());
-//                  try {
-//                      System.out.println(m_in.readLine());
-//                  } catch (IOException e) {
-//                      //e.printStackTrace();
-//                  }
+
+                  try {
+                  	String line_out = m_in.readLine();
+  		                if ( line_out!= null){
+  		                	m_display.replaceRange(line_out, 0, m_display.getText().length());
+  		                }
+  					}catch (IOException e) {
+  					}
           	  }
            });
         }
@@ -140,7 +147,6 @@ public class Client {
 
     public static class ResponseView extends JPanel {
         private JLabel m_outputLabel = new JLabel("Output: ");
-        private JTextArea display = new JTextArea(3,10);
         private JScrollPane m_outputPane = new JScrollPane();
         
         public ResponseView(){
@@ -150,22 +156,10 @@ public class Client {
         private void layoutView() {
             this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             this.add(this.m_outputLabel);
-            display.setEditable(false);
+            m_display.setEditable(false);
             m_outputPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-            this.add(this.m_outputPane.add(display));
-            
-            try {
-            	if (m_in != null) {
-            		String line_out = m_in.readLine();
-	                if ( line_out!= null){
-	                	display.replaceSelection(line_out);
-	                }
-            	}
-            } catch (IOException e) {
-                
-            };
+            this.add(this.m_outputPane.add(m_display));
         }
-        
     }
 
     private static class MainView extends JPanel {
