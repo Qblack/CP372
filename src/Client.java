@@ -1,3 +1,4 @@
+package src;
 import javax.swing.*;
 
 import java.awt.*;
@@ -19,7 +20,7 @@ public class Client {
 
         JFrame frame = new JFrame("The Shaper");
         frame.setContentPane(view);
-        frame.setSize(500, 500);
+        frame.setSize(500, 195);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         //Display the window.
         frame.setVisible(true);
@@ -31,9 +32,6 @@ public class Client {
         javax.swing.SwingUtilities.invokeLater(Client::createAndShowGUI);
     }
     
-    public interface ConnectionManager extends java.io.Serializable{
-    	
-    }
 
     public static class ConnectionView extends JPanel {
         final private String IP_FORMAT = "###.###.###.###";
@@ -77,12 +75,6 @@ public class Client {
 	    		}
 	    		
 	    		finally {
-//	    		    if (m_out != null) { 
-//	    		        System.out.println("Closing PrintWriter");
-//	    		        m_out.close(); 
-//	    		    } else { 
-//	    		        System.out.println("PrintWriter not open");
-//	    		    } 
 	    		} 
 	    	  }
 	    	});
@@ -106,7 +98,7 @@ public class Client {
     }
 
     public static class RequestView extends JPanel {
-        private JTextField m_inputText = new JTextField(20);
+        private JTextArea m_inputText = new JTextArea(3,10);
         private JLabel m_inputLabel = new JLabel("Input: ");
         private JButton m_postButton = new JButton("POST");
         private JButton m_getButton = new JButton("GET");
@@ -116,41 +108,41 @@ public class Client {
         }
 
         private void layoutView() {
-            this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             this.add(m_inputLabel);
             this.add(m_inputText);
             this.add(m_postButton);
             this.add(m_getButton);
-            
+                       
             m_postButton.addActionListener(new ActionListener() {
           	  public void actionPerformed(ActionEvent evt) {
                 m_out.println("POST " + m_inputText.getText());
-                  try {
-                      System.out.println(m_in.readLine());
-                  } catch (IOException e) {
-                      e.printStackTrace();
-                  }
+//                  try {
+//                      System.out.println(m_in.readLine());
+//                  } catch (IOException e) {
+//                      //e.printStackTrace();
+//                  }
               }
             });
             
             m_getButton.addActionListener(new ActionListener() {
           	  public void actionPerformed(ActionEvent evt) {
                   m_out.println("GET " + m_inputText.getText());
-                  try {
-                      System.out.println(m_in.readLine());
-                  } catch (IOException e) {
-                      e.printStackTrace();
-                  }
+//                  try {
+//                      System.out.println(m_in.readLine());
+//                  } catch (IOException e) {
+//                      //e.printStackTrace();
+//                  }
           	  }
-            });
+           });
         }
     }
 
     public static class ResponseView extends JPanel {
         private JLabel m_outputLabel = new JLabel("Output: ");
+        private JTextArea display = new JTextArea(3,10);
         private JScrollPane m_outputPane = new JScrollPane();
-        private JLabel m_output = new JLabel("test");
-
+        
         public ResponseView(){
             this.layoutView();
         }
@@ -158,16 +150,22 @@ public class Client {
         private void layoutView() {
             this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             this.add(this.m_outputLabel);
-            this.add(this.m_output);
-            this.add(this.m_outputPane);
-//			try {
-//				if(m_in != null){
-//					m_output.setText(m_in.readLine());
-//				}
-//			}
-//			catch (IOException e) {
-//			}
+            display.setEditable(false);
+            m_outputPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+            this.add(this.m_outputPane.add(display));
+            
+            try {
+            	if (m_in != null) {
+            		String line_out = m_in.readLine();
+	                if ( line_out!= null){
+	                	display.replaceSelection(line_out);
+	                }
+            	}
+            } catch (IOException e) {
+                
+            };
         }
+        
     }
 
     private static class MainView extends JPanel {
