@@ -2,7 +2,6 @@
 import java.io.* ;
 import java.io.InputStream;
 import java.lang.Exception;
-import java.lang.System;
 import java.net.* ;
 import java.util.* ;
 import java.util.stream.Stream;
@@ -255,7 +254,7 @@ public final class Server {
 
         public Quadrilateral(Vector<Point> points){
             super.points=points;
-            this.isQuadrilateral = checkIfPointsAreEqual();
+            this.isQuadrilateral = !hasEqualPoints();
 
             orderPoints();
             Point a = super.points.get(0);
@@ -290,7 +289,7 @@ public final class Server {
             }
         }
 
-        private boolean checkIfPointsAreEqual() {
+        private boolean hasEqualPoints() {
             if(super.points.get(0) == super.points.get(1)||
                     super.points.get(0) == super.points.get(2)||
                     super.points.get(0) == super.points.get(3)){
