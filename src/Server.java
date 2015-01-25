@@ -1,4 +1,3 @@
-package src;
 import java.io.* ;
 import java.io.InputStream;
 import java.lang.Exception;
@@ -71,41 +70,24 @@ public final class Server {
             String requestLine = reader.readLine();
 
             // Extract the filename from the request line.
-            StringTokenizer tokens = new StringTokenizer(requestLine);
-            String method = tokens.nextToken();
-            tokens.nextToken(); // Skip http type
 
-<<<<<<< HEAD
+
         // Extract the filename from the request line.
-        if (requestLine != null && !requestLine.isEmpty()){
-	        StringTokenizer tokens = new StringTokenizer(requestLine);
-	
-	
-	        String method = tokens.nextToken();
-	
-	        if (Objects.equals(method, "GET")){
-	            System.out.print("GET request made");
-	        }else if (Objects.equals(method, "POST")){
-	            System.out.print("POST request made");
-	        }else{
-	            throw new Exception(String.valueOf(405));
-	        }
-	        System.out.print("Hello World");
-	        System.out.print("Hello World");
-	        String fileName = tokens.nextToken();
-        }
-        else {
-        	System.out.print("Connected");
-        }
-=======
-            if (Objects.equals(method, "GET")){
-                handleGet(tokens);
-            }else if (Objects.equals(method, "POST")){
-                handlePost(tokens);
-            }else{
-                throw new Exception(String.valueOf(405));
-            }
+            if (requestLine != null && !requestLine.isEmpty()){
+                StringTokenizer tokens = new StringTokenizer(requestLine);
+                String method = tokens.nextToken();
 
+                if (Objects.equals(method, "GET")){
+                    System.out.print("GET request made");
+                }else if (Objects.equals(method, "POST")){
+                    System.out.print("POST request made");
+                }else{
+                    throw new Exception(String.valueOf(405));
+                }
+            }
+            else {
+                System.out.print("Connected");
+            }
         }
 
         private void handleGet(StringTokenizer tokens) {
@@ -147,8 +129,6 @@ public final class Server {
             return points;
         }
     }
-
->>>>>>> d4fc9e06cfac940578fee51a6cceb2c8e4788cb3
 
     //CLASSES
     private static class Shape{
