@@ -10,9 +10,9 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class Client {
-	static Socket socket = null;
-	static PrintWriter out = null;
-	static BufferedReader in = null;
+	static Socket m_socket = null;
+	static PrintWriter m_out = null;
+	static BufferedReader m_in = null;
 	
     private static void createAndShowGUI() {
     	final MainView view = new Client.MainView();
@@ -29,6 +29,10 @@ public class Client {
         //Schedule a job for the event-dispatching thread:
         //creating and showing this application's GUI.
         javax.swing.SwingUtilities.invokeLater(Client::createAndShowGUI);
+    }
+    
+    public interface ConnectionManager extends java.io.Serializable{
+    	
     }
 
     public static class ConnectionView extends JPanel {
@@ -62,9 +66,8 @@ public class Client {
 	    		
 	    		try {
 	    				Socket socket = new Socket(ipAddr, portNum);
-	    				out = new PrintWriter (socket.getOutputStream(), true);
-	    				in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-	    				//BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+	    				m_out = new PrintWriter (socket.getOutputStream(), true);
+	    				m_in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	    		}
 	    		
 	    		catch (IndexOutOfBoundsException e) {
@@ -74,20 +77,29 @@ public class Client {
 	    		}
 	    		
 	    		finally {
-	    		    if (out != null) { 
-	    		        System.out.println("Closing PrintWriter");
-	    		        out.close(); 
-	    		    } else { 
-	    		        System.out.println("PrintWriter not open");
-	    		    } 
+//	    		    if (m_out != null) { 
+//	    		        System.out.println("Closing PrintWriter");
+//	    		        m_out.close(); 
+//	    		    } else { 
+//	    		        System.out.println("PrintWriter not open");
+//	    		    } 
 	    		} 
 	    	  }
 	    	});
 	        
 	        m_disconnectButton.addActionListener(new ActionListener() {
 		    	  public void actionPerformed(ActionEvent evt) {
-		    	    // do this on Disconnect press
-		    		  
+	    		    if (m_out != null) { 
+	    		        System.out.println("Closing PrintWriter");
+	    		        m_out.close(); 
+	    		    } else { 
+	    		        System.out.println("PrintWriter not open");
+	    		    }   
+	    		    try {
+						m_socket.close();
+					} catch (IOException e) {
+						System.out.print("Socket not open");
+					}
 		    	  }
 		    });
         }
@@ -112,15 +124,14 @@ public class Client {
             
             m_postButton.addActionListener(new ActionListener() {
           	  public void actionPerformed(ActionEvent evt) {
-          	    // do this on POST press
-          		  System.out.print("post ...");
+          		System.out.print("posting ...");
+          	    m_out.write(m_inputText.getText());
           	  }
             });
             
             m_getButton.addActionListener(new ActionListener() {
           	  public void actionPerformed(ActionEvent evt) {
-          	    // do this on GET press
-          		  System.out.print("get ...");
+          		 m_out.write(m_inputText.getText());
           	  }
             });
         }
