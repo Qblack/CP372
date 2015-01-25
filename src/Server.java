@@ -4,7 +4,6 @@ import java.lang.Exception;
 import java.lang.System;
 import java.net.* ;
 import java.util.* ;
-import java.util.stream.Stream;
 
 public final class Server {
 
@@ -16,6 +15,7 @@ public final class Server {
     private static final int MAX_PORT = 65535;
     private static final String PORT_ERROR = "Invalid port please choose a port between: "+ MIN_PORT +" and " + MAX_PORT;
     private static Vector<Shape> m_shapes;
+    final static String CRLF = "\r\n";
 
     //Main Server
     public static void main(String argv[]) throws Exception {
@@ -88,6 +88,7 @@ public final class Server {
                     System.out.print("POST request made");
                     ShapeType shapeType = handlePost(tokens);
                     outputStream.writeBytes("OK "+ shapeType);
+                    outputStream.writeBytes(CRLF);
                 }else{
                     throw new Exception(String.valueOf(405));
                 }
