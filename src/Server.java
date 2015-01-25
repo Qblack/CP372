@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 public final class Server {
 
     private enum ShapeType {
-        Triangle, Quadrilateral, Invalid;
+        Triangle, Quadrilateral, Invalid
     }
 
     private static final int MIN_PORT = 1;
@@ -46,7 +46,6 @@ public final class Server {
             thread.start();
         }
     }
-
 
     //Handle Requests
     public static class ShapeRequest implements Runnable {
@@ -188,6 +187,72 @@ public final class Server {
 
         public abstract boolean equals(Object other);
         public abstract String toString();
+    }
+
+    private static class Quadrilateral extends Shape {
+        private boolean m_rectangle = false;
+        private boolean m_square = false;
+        private boolean m_rhombus = false;
+        private boolean m_parallelogram = false;
+        private boolean m_convex = false;
+
+        public Quadrilateral(Vector<Point> points){
+            super.points=points;
+            super.points = points;
+            Point first = super.points.get(0);
+            Point second =super.points.get(1);
+            Point third = super.points.get(2);
+            Point fourth = super.points.get(3);
+
+            int a2 = first.distanceSquared(second);
+            int b2 = first.distanceSquared(third);
+            int c2 = second.distanceSquared(fourth);
+            int d2 = second.distanceSquared(third);
+
+            ArrayList<Integer> distances = new ArrayList<>();
+            distances.add(a2);
+            distances.add(b2);
+            distances.add(c2);
+            Collections.sort(distances);
+            c2 = distances.remove(2);
+            b2 = distances.remove(1);
+            a2 = distances.remove(0);
+
+        }
+
+
+
+
+
+        @Override
+        public boolean equals(Object other) {
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return null;
+        }
+
+        public boolean isConvex() {
+            return m_convex;
+        }
+
+        public boolean isParallelogram() {
+            return m_parallelogram;
+        }
+
+        public boolean isRhombus() {
+            return m_rhombus;
+        }
+
+        public boolean isSquare() {
+            return m_square;
+        }
+
+        public boolean isRectangle() {
+            return m_rectangle;
+        }
     }
 
     private static class Triangle extends Shape {
