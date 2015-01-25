@@ -8,6 +8,14 @@ import java.util.* ;
 import java.util.stream.Stream;
 
 public final class Server {
+	
+	//---ProtocolExceptions----------
+	public class ProtocolException extends Exception{
+		public ProtocolException (String msg){
+			super (msg);
+		}
+	}
+
 
     private enum ShapeType {
         Triangle, Quadrilateral, Invalid
@@ -61,10 +69,11 @@ public final class Server {
             try {
                 processRequest();
             } catch (Exception e) {
-                System.out.println(e);
+                //System.out.println(e);
             }
         }
 
+        //need custom exception handling
         private void processRequest() throws Exception{
             InputStream inputStream = m_socket.getInputStream();
             DataOutputStream outputStream = new DataOutputStream(m_socket.getOutputStream());
@@ -73,25 +82,29 @@ public final class Server {
 
             // Get the request line of the HTTP request message.
             String requestLine = reader.readLine();
-
-            while(requestLine!=null){
-                System.out.println(requestLine);
-                StringTokenizer tokens = new StringTokenizer(requestLine);
-                String method = tokens.nextToken();
-                if (Objects.equals(method, "GET")){
-                    Vector<Shape> results = handleGet(tokens);
-                    for (Shape result : results) {
-                        outputStream.writeBytes(result.toString()+"\n");
-                    }
-                    outputStream.writeBytes(CRLF);
-                }else if (Objects.equals(method, "POST")){
-                    ShapeType shapeType = handlePost(tokens);
-                    outputStream.writeBytes("OK "+ shapeType);
-                    outputStream.writeBytes(CRLF);
-                }else{
-                    throw new Exception(String.valueOf(405));
-                }
-                requestLine = reader.readLine();
+            
+            try{
+	            while(requestLine!=null){
+	                StringTokenizer tokens = new StringTokenizer(requestLine);
+	                String method = tokens.nextToken();
+	                if (Objects.equals(method, "GET")){
+	                    Vector<Shape> results = handleGet(tokens);
+	                    for (Shape result : results) {
+	                        outputStream.writeBytes(result.toString()+"\n");
+	                    }
+	                    outputStream.writeBytes(CRLF);
+	                }else if (Objects.equals(method, "POST")){
+	                    ShapeType shapeType = handlePost(tokens);
+	                    outputStream.writeBytes("OK "+ shapeType);
+	                    outputStream.writeBytes(CRLF);
+	                }else{
+	                    throw new ProtocolException("400: Bad Request");
+	                }
+	                requestLine = reader.readLine();
+	            }
+            }catch(ProtocolException err){
+            	outputStream.writeBytes(err.getMessage());
+                outputStream.writeBytes(CRLF);
             }
         }
 
