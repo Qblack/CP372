@@ -1,3 +1,4 @@
+package src;	//be sure to delete this line
 import java.io.* ;
 import java.io.InputStream;
 import java.lang.Exception;
@@ -74,6 +75,7 @@ public final class Server {
 
         // Extract the filename from the request line.
             if (requestLine != null && !requestLine.isEmpty()){
+            	System.out.print("DATA");
                 StringTokenizer tokens = new StringTokenizer(requestLine);
                 String method = tokens.nextToken();
 
