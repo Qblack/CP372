@@ -1,4 +1,4 @@
-//package src;
+package src;
 import java.io.* ;
 import java.io.InputStream;
 import java.lang.Exception;
@@ -94,8 +94,12 @@ public final class Server {
 	                    outputStream.writeBytes(CRLF);
 	                }else if (Objects.equals(method, "POST")){
 	                    ShapeType shapeType = handlePost(tokens);
-	                    outputStream.writeBytes("OK "+ shapeType);
-	                    outputStream.writeBytes(CRLF);
+	                    if (shapeType != shapeType.Invalid){
+		                    outputStream.writeBytes("OK "+ shapeType);
+		                    outputStream.writeBytes(CRLF);
+	                    }else{
+	                    	throw new ProtocolException("403: Invalid Number of Points");
+	                    }
 	                }else{
 	                    throw new ProtocolException("400: Bad Request");
 	                }
@@ -107,23 +111,23 @@ public final class Server {
             }
         }
 
-        private Vector<Shape> handleGet(StringTokenizer tokens) throws Exception {
+        private Vector<Shape> handleGet(StringTokenizer tokens) throws ProtocolException {
             String shapeType = tokens.nextToken();
             Vector<Shape> resultShapes = new Vector<>();
             switch (shapeType) {
                 case "T":
-                    handleTriangleGets(tokens,resultShapes);
+					handleTriangleGets(tokens,resultShapes);
                     break;
                 case "Q":
                     handleQuadrilateralGets(tokens, resultShapes);
                     break;
                 default:
-                    throw new Exception("400 Invalid request");
+                    throw new ProtocolException("401: Invalid Shape Query");
             }
             return resultShapes;
         }
 
-        private void handleQuadrilateralGets(StringTokenizer tokens, Vector<Shape> resultShapes) throws Exception {
+        private void handleQuadrilateralGets(StringTokenizer tokens, Vector<Shape> resultShapes) throws ProtocolException {
             String request = tokens.nextToken();
 
             Stream<Quadrilateral> quadrilateralStream = m_shapes.stream()
@@ -148,11 +152,11 @@ public final class Server {
                 int numberOf = Integer.parseInt(request);
                 quadrilateralStream.filter(t -> t.getCount() >= numberOf).forEach(resultShapes::add);
             }else{
-                throw new Exception("400 Unsupported Quadrilateral Request");
+                throw new ProtocolException("402: Invalid Quadrilateral");
             }
         }
 
-        private void handleTriangleGets(StringTokenizer tokens, Vector<Shape> resultShapes) throws Exception {
+        private void handleTriangleGets(StringTokenizer tokens, Vector<Shape> resultShapes) throws ProtocolException {
             String request = tokens.nextToken();
 
             Stream<Triangle> triangleStream = m_shapes.stream()
@@ -171,15 +175,15 @@ public final class Server {
                 int numberOf = Integer.parseInt(request);
                 triangleStream.filter(t->t.getCount()>=numberOf).forEach(resultShapes::add);
             }else{
-                throw new Exception("400 Unsupported Triangle Request");
+                throw new ProtocolException("402: Invalid Triangle");
             }
         }
 
-        private ShapeType handlePost(StringTokenizer tokens) throws Exception {
+        private ShapeType handlePost(StringTokenizer tokens) throws ProtocolException {
             ShapeType shapeType = ShapeType.Invalid;
             int numberPoints = tokens.countTokens();
             if (numberPoints%2!=0 && (numberPoints/3!=2 || numberPoints/4!=2)){
-                throw new Exception("400, invalid number of points");
+                throw new ProtocolException("403: Invalid Number of Points");
             }
 
             Vector<Point> points = getPointVector(tokens);
@@ -194,7 +198,7 @@ public final class Server {
                     }
                     shapeType = ShapeType.Triangle;
                 }else{
-                    throw new Exception("400 Not a triangle");
+                    throw new ProtocolException("404: Line Segment Error in Triangle");
                 }
             }else if(points.size()==4){
                 //TODO Check for reflexive
@@ -207,6 +211,8 @@ public final class Server {
                         m_shapes.add(quad);
                     }
                     shapeType = ShapeType.Quadrilateral;
+                }else{
+                    throw new ProtocolException("404: Line Segment Error in Quadrilateral");
                 }
             }
             return shapeType;
