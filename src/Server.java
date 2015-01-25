@@ -192,6 +192,7 @@ public final class Server {
 
     /* Currently must be given in counter clock wise order from farthest left and lowest point */
     private static class Quadrilateral extends Shape {
+        private boolean m_trapezoid = false;
         private boolean m_rectangle = false;
         private boolean m_square = false;
         private boolean m_rhombus = false;
@@ -200,25 +201,117 @@ public final class Server {
 
         public Quadrilateral(Vector<Point> points){
             super.points=points;
-            super.points = points;
-            Point first = super.points.get(0);
-            Point second =super.points.get(1);
-            Point third = super.points.get(2);
-            Point fourth = super.points.get(3);
+//TODO Test for concavity
 
-            int bottom2 = first.distanceSquared(second);
-            int right2 = second.distanceSquared(third);
-            int top2 = third.distanceSquared(fourth);
-            int left2 = fourth.distanceSquared(first);
+            orderPoints();
+            Point a = super.points.get(0);
+            Point b =super.points.get(1);
+            Point c = super.points.get(2);
+            Point d = super.points.get(3);
 
-            if( bottom2==right2&&right2==top2 &&top2==left2){
+            Line bottom = new Line(a,b);
+            Line right = new Line(b,c);
+            Line top = new Line(c,d);
+            Line left = new Line(d,a);
+
+            if(bottom.lengthSquared==right.lengthSquared&&right.lengthSquared==top.lengthSquared&&top.lengthSquared==left.lengthSquared){
                 this.m_rhombus = true;
+                if(bottom.slope==0 && left.slope==Integer.MAX_VALUE){
+                    this.m_square = true;
+                    this.m_rectangle = true;
+                    this.m_parallelogram = true;
+                }
+            }else if(bottom.lengthSquared==top.lengthSquared && left.lengthSquared==right.lengthSquared){
+                if(bottom.areParellel(top) && left.areParellel(right)){
+                    this.m_parallelogram = true;
+                    if(bottom.slope==0&&left.slope==Integer.MAX_VALUE){
+                        this.m_rectangle=true;
+                    }
+                }
+            }else if(bottom.areParellel(top)||left.areParellel(right)){
+                this.m_trapezoid = true;
             }
+        }
 
+        /**
+         * Orders point counter clockwise, a b c d
+         */
+        private void orderPoints() {
+            int bottomLeftIndex = getBottomLeft();
+            Point pointA = super.points.remove(bottomLeftIndex);
+            ArrayList<Line> vertices = new ArrayList<>();
+            for(Point point : super.points){
+                vertices.add(new Line(pointA, point));
+            }
+            super.points.removeAllElements();
+            vertices.sort(new LineSlopeComparator());
+
+            points.add(pointA);
+            for (Line vertice : vertices) {
+                points.add(vertice.pair[1]);
+            }
         }
 
 
 
+        public class Line {
+
+
+            public Point[] pair = new Point[2];
+            public double slope = 0;
+            public int lengthSquared = 0;
+            public Line(Point point1, Point point2){
+                this.pair[0] = point1;
+                this.pair[1] = point2;
+                this.lengthSquared = point1.distanceSquared(point2);
+                this.slope = point1.slopeBetweenPoints(point2);
+            }
+
+            public boolean areParellel(Line other){
+                Point p1 = this.pair[0];
+                Point p2 = this.pair[1];
+                Point p3 = other.pair[0];
+                Point p4 = other.pair[1];
+                int firstHalf = (p4.getX()-p3.getX())*(p2.getY()-p1.getY());
+                int secondHalf = (p4.getY()-p3.getY())*(p2.getX()-p1.getX());
+                return (firstHalf-secondHalf)==0;
+            }
+
+        }
+        public class LineSlopeComparator implements Comparator<Line> {
+            /**
+             * @param line1
+             * @param line2
+             * @return a negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater than the second.
+             */
+            @Override
+            public int compare(Line line1, Line line2) {
+                if(line1.slope== line2.slope){
+                    return 0;
+                }else if(line1.slope< line2.slope){
+                    return -1;
+                }
+                return 1;
+            }
+        }
+
+        private int getBottomLeft() {
+            Point bottomLeft = super.points.elementAt(0);
+            int bottomLeftIndex = 0;
+            for(int position =1; position< super.points.size() ;position++){
+                Point point = super.points.elementAt(position);
+                if( point.getX()==bottomLeft.getX()){
+                    if(point.getY() < bottomLeft.getY()){
+                        bottomLeft = point;
+                        bottomLeftIndex = position;
+                    }
+                }else if( point.getX()<bottomLeft.getX()){
+                    bottomLeft = point;
+                    bottomLeftIndex = position;
+                }
+            }
+            return bottomLeftIndex;
+        }
 
 
         @Override
@@ -359,6 +452,18 @@ public final class Server {
         }
         public int distanceSquared(Point other){
             return (int) (Math.pow((other.getX()- this.x),2) + Math.pow((other.getY() - this.y),2));
+        }
+
+        public double slopeBetweenPoints(Point other){
+            int rise = other.getY() - this.getY();
+            int run = other.getX() - this.getX();
+            double slope;
+            if (run==0){
+                slope = Integer.MAX_VALUE;
+            }else{
+                slope = rise/run;
+            }
+            return slope;
         }
 
         @Override
