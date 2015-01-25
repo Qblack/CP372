@@ -69,7 +69,7 @@ public final class Server {
             try {
                 processRequest();
             } catch (Exception e) {
-                //System.out.println(e);
+                System.out.println(e);
             }
         }
 
@@ -199,7 +199,7 @@ public final class Server {
                     }
                     shapeType = ShapeType.Triangle;
                 }else{
-                    throw new ProtocolException("404: Line Segment Error in Triangle");
+                    throw new ProtocolException("404: Point/Line Segment Error in Triangle");
                 }
             }else if(points.size()==4){
                 //TODO Check for reflexive
@@ -213,7 +213,7 @@ public final class Server {
                     }
                     shapeType = ShapeType.Quadrilateral;
                 }else{
-                    throw new ProtocolException("404: Line Segment Error in Quadrilateral");
+                    throw new ProtocolException("404: Point/Line Segment Error in Quadrilateral");
                 }
             }
             return shapeType;
