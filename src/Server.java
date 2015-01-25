@@ -1,8 +1,6 @@
-//package src;
 import java.io.* ;
 import java.io.InputStream;
 import java.lang.Exception;
-import java.lang.System;
 import java.net.* ;
 import java.util.* ;
 import java.util.stream.Stream;
@@ -15,7 +13,6 @@ public final class Server {
 			super (msg);
 		}
 	}
-
 
     private enum ShapeType {
         Triangle, Quadrilateral, Invalid
@@ -30,7 +27,6 @@ public final class Server {
     //Main Server
     public static void main(String argv[]) throws Exception {
         // Get the port number from the command line.
-
         int port = new Integer(argv[0]).intValue();
 
         if (port< MIN_PORT || port > MAX_PORT){
@@ -95,7 +91,7 @@ public final class Server {
 	                    outputStream.writeBytes(CRLF);
 	                }else if (Objects.equals(method, "POST")){
 	                    ShapeType shapeType = handlePost(tokens);
-	                    if (shapeType != shapeType.Invalid){
+	                    if (shapeType != ShapeType.Invalid){
 		                    outputStream.writeBytes("OK "+ shapeType);
 		                    outputStream.writeBytes(CRLF);
 	                    }else{
@@ -187,7 +183,7 @@ public final class Server {
                 throw new ProtocolException("403: Invalid Number of Points");
             }
 
-            Vector<Point> points = getPointVector(tokens);
+            Vector<Point> points = constructPointVector(tokens);
             if (points.size()==3){
                 Triangle triangle = new Triangle(points);
                 if(triangle.isTriangle()){
@@ -219,7 +215,7 @@ public final class Server {
             return shapeType;
         }
 
-        private Vector<Point> getPointVector(StringTokenizer tokens) {
+        private Vector<Point> constructPointVector(StringTokenizer tokens) {
             Vector<Point> points = new Vector<>();
             while(tokens.hasMoreTokens()){
                 int xCoordinate = Integer.parseInt(tokens.nextToken());
@@ -246,12 +242,12 @@ public final class Server {
 
         public abstract boolean equals(Object other);
         public abstract String toString();
+        public abstract boolean hasLineSegment();
+        public abstract boolean hasPointOverlap();
     }
 
-
-    /* Currently must be given in counter clock wise order from farthest left and lowest point */
     private static class Quadrilateral extends Shape {
-        private final boolean isQuadrilateral;
+        private boolean m_quadrilateral = false;
         private boolean m_trapezoid = false;
         private boolean m_rectangle = false;
         private boolean m_square = false;
@@ -260,8 +256,8 @@ public final class Server {
         private boolean m_concave = false;
 
         public Quadrilateral(Vector<Point> points){
-            super.points=points;
-            this.isQuadrilateral = checkIfPointsAreEqual();
+            super.points = points;
+            this.m_quadrilateral = !(hasPointOverlap() || hasLineSegment());
 
             orderPoints();
             Point a = super.points.get(0);
@@ -296,17 +292,6 @@ public final class Server {
             }
         }
 
-        private boolean checkIfPointsAreEqual() {
-            if(super.points.get(0) == super.points.get(1)||
-                    super.points.get(0) == super.points.get(2)||
-                    super.points.get(0) == super.points.get(3)){
-                return true;
-            }else if(super.points.get(1) == super.points.get(2)||
-                    super.points.get(1) == super.points.get(3)) {
-                return true;
-            }else return super.points.get(2) == super.points.get(3);
-        }
-
         /**
          * Orders point counter clockwise, a b c d
          */
@@ -326,14 +311,112 @@ public final class Server {
             }
         }
 
+        private int getBottomLeft() {
+            Point bottomLeft = super.points.elementAt(0);
+            int bottomLeftIndex = 0;
+            for(int position =1; position< super.points.size() ;position++){
+                Point point = super.points.elementAt(position);
+                if( point.getX()==bottomLeft.getX()){
+                    if(point.getY() < bottomLeft.getY()){
+                        bottomLeft = point;
+                        bottomLeftIndex = position;
+                    }
+                }else if( point.getX()<bottomLeft.getX()){
+                    bottomLeft = point;
+                    bottomLeftIndex = position;
+                }
+            }
+            return bottomLeftIndex;
+        }
+
+        @Override
+        public boolean hasLineSegment() {
+            Point a = super.points.get(0);
+            Point b = super.points.get(1);
+            Point c = super.points.get(2);
+            Point d = super.points.get(3);
+            if(crossProduct(a, b, c)){
+                return true;
+            }else if(crossProduct(a, b, d)){
+                return true;
+            }else if (crossProduct(a, c, d)){
+                return true;
+            }else if(crossProduct(b, c, d)){
+                return true;
+            }
+            return false;
+        }
+
+        private boolean crossProduct(Point a, Point b, Point c) {
+            int crossProduct = (c.y - a.y) * (b.x - a.x) - (c.x - a.x) * (b.y - a.y);
+            return crossProduct == 0;
+        }
+
+        @Override
+        public boolean hasPointOverlap() {
+            if(super.points.get(0) == super.points.get(1)||
+                    super.points.get(0) == super.points.get(2)||
+                    super.points.get(0) == super.points.get(3)){
+                return true;
+            }else if(super.points.get(1) == super.points.get(2)||
+                    super.points.get(1) == super.points.get(3)) {
+                return true;
+            }else return super.points.get(2) == super.points.get(3);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }else if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final Quadrilateral other = (Quadrilateral) obj;
+            Boolean equal = true;
+            for (Point point : other.points) {
+                if(!super.points.contains(point)){
+                    equal = false;
+                }
+            }
+            return equal;
+        }
+
+        @Override
+        public String toString() {
+            String output = "";
+            for (Point point : this.points) {
+                output+= point.toString()+",";
+            }
+            return output;
+        }
+
         public boolean isTrapezoid() {
             return m_trapezoid;
         }
 
         public boolean isQuadrilateral() {
-            return isQuadrilateral;
+            return m_quadrilateral;
         }
 
+        public boolean isConvex() {
+            return m_concave;
+        }
+
+        public boolean isParallelogram() {
+            return m_parallelogram;
+        }
+
+        public boolean isRhombus() {
+            return m_rhombus;
+        }
+
+        public boolean isSquare() {
+            return m_square;
+        }
+
+        public boolean isRectangle() {
+            return m_rectangle;
+        }
 
         public class Line {
             public Point[] pair = new Point[2];
@@ -372,69 +455,6 @@ public final class Server {
                 }
                 return 1;
             }
-        }
-        private int getBottomLeft() {
-            Point bottomLeft = super.points.elementAt(0);
-            int bottomLeftIndex = 0;
-            for(int position =1; position< super.points.size() ;position++){
-                Point point = super.points.elementAt(position);
-                if( point.getX()==bottomLeft.getX()){
-                    if(point.getY() < bottomLeft.getY()){
-                        bottomLeft = point;
-                        bottomLeftIndex = position;
-                    }
-                }else if( point.getX()<bottomLeft.getX()){
-                    bottomLeft = point;
-                    bottomLeftIndex = position;
-                }
-            }
-            return bottomLeftIndex;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null) {
-                return false;
-            }else if (getClass() != obj.getClass()) {
-                return false;
-            }
-            final Quadrilateral other = (Quadrilateral) obj;
-            Boolean equal = true;
-            for (Point point : other.points) {
-                if(!super.points.contains(point)){
-                    equal = false;
-                }
-            }
-            return equal;
-        }
-
-        @Override
-        public String toString() {
-            String output = "";
-            for (Point point : this.points) {
-                output+= point.toString()+",";
-            }
-            return output;
-        }
-
-        public boolean isConvex() {
-            return m_concave;
-        }
-
-        public boolean isParallelogram() {
-            return m_parallelogram;
-        }
-
-        public boolean isRhombus() {
-            return m_rhombus;
-        }
-
-        public boolean isSquare() {
-            return m_square;
-        }
-
-        public boolean isRectangle() {
-            return m_rectangle;
         }
     }
 
@@ -508,6 +528,16 @@ public final class Server {
                 output+= point.toString()+",";
             }
             return output;
+        }
+
+        @Override
+        public boolean hasLineSegment() {
+            return false;
+        }
+
+        @Override
+        public boolean hasPointOverlap() {
+            return false;
         }
 
         public Boolean isEquilateral() {
