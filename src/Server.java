@@ -117,6 +117,7 @@ public final class Server {
             Stream<Triangle> triangleStream = m_shapes.stream()
                     .filter(shape -> shape instanceof Triangle)
                     .map(t -> (Triangle) t);
+
             if(request.toLowerCase().equals("right")){
                 triangleStream.filter(Triangle::isRightAngled).forEach(resultShapes::add);
             }else if(request.toLowerCase().equals("isosceles")) {
@@ -127,7 +128,7 @@ public final class Server {
                 triangleStream.filter(Triangle::isScalene).forEach(resultShapes::add);
             }else if(request.matches("^\\d+$")){
                 int numberOf = Integer.parseInt(request);
-                triangleStream.filter(t->t.getCount()==numberOf).forEach(resultShapes::add);
+                triangleStream.filter(t->t.getCount()>=numberOf).forEach(resultShapes::add);
             }else{
                 throw new Exception("400 Unsupported Triangle Request");
             }
