@@ -1,4 +1,3 @@
-package src;	//be sure to delete this line
 import javax.swing.*;
 
 import java.awt.*;

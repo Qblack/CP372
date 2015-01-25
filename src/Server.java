@@ -76,11 +76,12 @@ public final class Server {
             if (requestLine != null && !requestLine.isEmpty()){
                 StringTokenizer tokens = new StringTokenizer(requestLine);
                 String method = tokens.nextToken();
-
                 if (Objects.equals(method, "GET")){
                     System.out.print("GET request made");
+                    handleGet(tokens);
                 }else if (Objects.equals(method, "POST")){
                     System.out.print("POST request made");
+                    handlePost(tokens);
                 }else{
                     throw new Exception(String.valueOf(405));
                 }
@@ -90,8 +91,28 @@ public final class Server {
             }
         }
 
-        private void handleGet(StringTokenizer tokens) {
-            
+        private void handleGet(StringTokenizer tokens) throws Exception {
+            String shapeType = tokens.nextToken();
+            switch (shapeType) {
+                case "T":
+                    handleTriangleGets(tokens);
+                    break;
+                case "Q":
+                    System.out.print("Quad request received");
+                    break;
+                default:
+                    throw new Exception("400 Invalid request");
+            }
+        }
+
+        private void handleTriangleGets(StringTokenizer tokens) {
+            String request = tokens.nextToken();
+            if(request.toLowerCase().equals("isosceles")){
+                m_shapes.stream().filter(shape ->shape instanceof Triangle)
+                ;
+
+            }
+
         }
 
         private void handlePost(StringTokenizer tokens) throws Exception {
@@ -134,8 +155,14 @@ public final class Server {
     private static class Shape{
         public Vector<Point> points;
         public int count = 0;
+
+
         public void incrementCount() {
             this.count++;
+        }
+
+        public int getCount() {
+            return count;
         }
     }
 
@@ -194,27 +221,23 @@ public final class Server {
         }
 
         public Boolean isEquilateral() {
-            return isEquilateral;
+            return this.isEquilateral;
         }
         public Boolean isRightAngled() {
-            return isRightAngled;
+            return this.isRightAngled;
         }
         public Boolean isIsosceles() {
-            return isIsosceles;
+            return this.isIsosceles;
         }
 
         public Boolean isScalene() {
-            return isScalene;
-        }
-
-        public int getCount() {
-            return count;
+            return this.isScalene;
         }
 
 
 
         public Boolean isTriangle() {
-            return isTriangle;
+            return this.isTriangle;
         }
     }
 
