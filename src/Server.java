@@ -244,7 +244,7 @@ public final class Server {
 
     /* Currently must be given in counter clock wise order from farthest left and lowest point */
     private static class Quadrilateral extends Shape {
-        private final boolean isQuadrilateral;
+        private boolean m_quadrilateral = true;
         private boolean m_trapezoid = false;
         private boolean m_rectangle = false;
         private boolean m_square = false;
@@ -254,7 +254,9 @@ public final class Server {
 
         public Quadrilateral(Vector<Point> points){
             super.points=points;
-            this.isQuadrilateral = !hasEqualPoints();
+            this.m_quadrilateral = !hasEqualPoints();
+            this.m_quadrilateral = !hasSegments();
+
 
             orderPoints();
             Point a = super.points.get(0);
@@ -278,15 +280,37 @@ public final class Server {
                     this.m_parallelogram = true;
                 }
             }else if(bottom.lengthSquared==top.lengthSquared && left.lengthSquared==right.lengthSquared){
-                if(bottom.areParellel(top) && left.areParellel(right)){
+                if(bottom.areParallel(top) && left.areParallel(right)){
                     this.m_parallelogram = true;
                     if(bottom.slope==0&&left.slope==Integer.MAX_VALUE){
                         this.m_rectangle=true;
                     }
                 }
-            }else if(bottom.areParellel(top)||left.areParellel(right)){
+            }else if(bottom.areParallel(top)||left.areParallel(right)){
                 this.m_trapezoid = true;
             }
+        }
+
+        private boolean hasSegments() {
+            Point a = super.points.get(0);
+            Point b = super.points.get(1);
+            Point c = super.points.get(2);
+            Point d = super.points.get(3);
+            if(crossProduct(a, b, c)){
+                return true;
+            }else if(crossProduct(a, b, d)){
+                return true;
+            }else if (crossProduct(a, c, d)){
+                return true;
+            }else if(crossProduct(b, c, d)){
+                return true;
+            }
+            return false;
+        }
+
+        private boolean crossProduct(Point a, Point b, Point c) {
+            int crossProduct = (c.y - a.y) * (b.x - a.x) - (c.x - a.x) * (b.y - a.y);
+            return crossProduct == 0;
         }
 
         private boolean hasEqualPoints() {
@@ -324,7 +348,7 @@ public final class Server {
         }
 
         public boolean isQuadrilateral() {
-            return isQuadrilateral;
+            return m_quadrilateral;
         }
 
 
@@ -339,7 +363,7 @@ public final class Server {
                 this.slope = point1.slopeBetweenPoints(point2);
             }
 
-            public boolean areParellel(Line other){
+            public boolean areParallel(Line other){
                 Point p1 = this.pair[0];
                 Point p2 = this.pair[1];
                 Point p3 = other.pair[0];
@@ -348,6 +372,7 @@ public final class Server {
                 int secondHalf = (p4.getY()-p3.getY())*(p2.getX()-p1.getX());
                 return (firstHalf-secondHalf)==0;
             }
+
 
         }
         public class LineSlopeComparator implements Comparator<Line> {
