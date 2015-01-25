@@ -75,13 +75,17 @@ public final class Server {
             tokens.nextToken(); // Skip http type
 
             if (Objects.equals(method, "GET")){
-                System.out.print("GET request made");
+                handleGet(tokens);
             }else if (Objects.equals(method, "POST")){
                 handlePost(tokens);
             }else{
                 throw new Exception(String.valueOf(405));
             }
 
+        }
+
+        private void handleGet(StringTokenizer tokens) {
+            
         }
 
         private void handlePost(StringTokenizer tokens) throws Exception {
@@ -128,7 +132,6 @@ public final class Server {
         public void incrementCount() {
             this.count++;
         }
-
     }
 
     private static class Triangle extends Shape {
