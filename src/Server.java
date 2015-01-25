@@ -1,12 +1,16 @@
-package src;	//be sure to delete this line
 import java.io.* ;
 import java.io.InputStream;
 import java.lang.Exception;
 import java.lang.System;
 import java.net.* ;
 import java.util.* ;
+import java.util.stream.Stream;
 
 public final class Server {
+
+    private enum ShapeType {
+        Triangle, Quadrilateral, Invalid;
+    }
 
     private static final int MIN_PORT = 1;
     private static final int MAX_PORT = 65535;
@@ -64,16 +68,15 @@ public final class Server {
             InputStream inputStream = m_socket.getInputStream();
             DataOutputStream outputStream = new DataOutputStream(m_socket.getOutputStream());
 
+
             // Set up input stream filters.
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
             // Get the request line of the HTTP request message.
             String requestLine = reader.readLine();
 
-            // Extract the filename from the request line.
+            System.out.print(requestLine);
 
-
-        // Extract the filename from the request line.
             if (requestLine != null && !requestLine.isEmpty()){
             	System.out.print("DATA");
                 StringTokenizer tokens = new StringTokenizer(requestLine);
@@ -83,7 +86,8 @@ public final class Server {
                     handleGet(tokens);
                 }else if (Objects.equals(method, "POST")){
                     System.out.print("POST request made");
-                    handlePost(tokens);
+                    ShapeType shapeType = handlePost(tokens);
+                    outputStream.writeBytes("OK "+ shapeType);
                 }else{
                     throw new Exception(String.valueOf(405));
                 }
@@ -109,22 +113,22 @@ public final class Server {
 
         private void handleTriangleGets(StringTokenizer tokens) {
             String request = tokens.nextToken();
-            if(request.toLowerCase().equals("isosceles")){
-                m_shapes.stream().filter(shape ->shape instanceof Triangle)
-                ;
 
+            if(request.toLowerCase().equals("right")){
+                m_shapes.stream().filter(shape -> shape instanceof Triangle)
+                        .map(t -> (Triangle) t)
+                        .filter(Triangle::isRightAngled).forEach(System.out::println);
             }
-
         }
 
-        private void handlePost(StringTokenizer tokens) throws Exception {
+        private ShapeType handlePost(StringTokenizer tokens) throws Exception {
+            ShapeType shapeType = ShapeType.Invalid;
             int numberPoints = tokens.countTokens();
             if (numberPoints%2!=0 && (numberPoints/3!=2 || numberPoints/4!=2)){
                 throw new Exception("400, invalid number of points");
             }
 
             Vector<Point> points = getPointVector(tokens);
-
             if (points.size()==3){
                 Triangle triangle = new Triangle(points);
                 if(triangle.isTriangle()){
@@ -134,11 +138,14 @@ public final class Server {
                     }else{
                         m_shapes.add(triangle);
                     }
+                    shapeType = ShapeType.Triangle;
                 }else{
                     throw new Exception("400 Not a triangle");
                 }
+            }else if(points.size()==4){
+                shapeType = ShapeType.Quadrilateral;
             }
-
+            return shapeType;
         }
 
         private Vector<Point> getPointVector(StringTokenizer tokens) {
@@ -154,7 +161,7 @@ public final class Server {
     }
 
     //CLASSES
-    private static class Shape{
+    private static abstract class Shape{
         public Vector<Point> points;
         public int count = 0;
 
@@ -166,6 +173,8 @@ public final class Server {
         public int getCount() {
             return count;
         }
+
+        public abstract boolean equals(Triangle other);
     }
 
     private static class Triangle extends Shape {
@@ -182,26 +191,26 @@ public final class Server {
             Point second =super.points.get(1);
             Point third = super.points.get(2);
 
-            int a = first.distanceSquared(second);
-            int b = first.distanceSquared(third);
-            int c = second.distanceSquared(third);
+            int a2 = first.distanceSquared(second);
+            int b2 = first.distanceSquared(third);
+            int c2 = second.distanceSquared(third);
 
             ArrayList<Integer> distances = new ArrayList<>();
-            distances.add(a);
-            distances.add(b);
-            distances.add(c);
+            distances.add(a2);
+            distances.add(b2);
+            distances.add(c2);
             Collections.sort(distances);
-            c = distances.remove(2);
-            b = distances.remove(1);
-            a = distances.remove(0);
+            c2 = distances.remove(2);
+            b2 = distances.remove(1);
+            a2 = distances.remove(0);
 
-            if((a+b)>c&&(a+c)>b&&(b+c)>a){
-                if(a == b && a == c){
+            if((a2+b2)>=c2&&(a2+c2)>=b2&&(b2+c2)>=a2){
+                if(a2 == b2 && a2 == c2){
                     this.isEquilateral = true;
                     this.isIsosceles = true;
-                }else if (a==b || a==c|| c==b){
+                }else if (a2==b2 || a2==c2|| c2==b2){
                     this.isIsosceles = true;
-                }else if(c==(a+b)){
+                }else if(c2==(a2+b2)){
                     this.isRightAngled = true;
                     this.isScalene = true;
                 }else{
@@ -212,7 +221,8 @@ public final class Server {
             }
         }
 
-        public boolean Equals(Triangle other){
+        @Override
+        public boolean equals(Triangle other){
             Boolean equal = true;
             for (Point point : other.points) {
                 if(!super.points.contains(point)){
@@ -261,7 +271,7 @@ public final class Server {
         }
 
         public int distanceSquared(Point other){
-            return (other.getX()- this.x)^2 + (other.getY()- this.y)^2;
+            return (int) (Math.pow((other.getX()- this.x),2) + Math.pow((other.getY() - this.y),2));
         }
     }
 }
