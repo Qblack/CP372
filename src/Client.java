@@ -125,13 +125,12 @@ public class Client {
             m_postButton.addActionListener(new ActionListener() {
           	  public void actionPerformed(ActionEvent evt) {
           		System.out.print("posting ...");
-          	    m_out.write(m_inputText.getText());
           	  }
             });
             
             m_getButton.addActionListener(new ActionListener() {
           	  public void actionPerformed(ActionEvent evt) {
-          		 m_out.write(m_inputText.getText());
+          		 m_out.println("GET " + m_inputText.getText());
           	  }
             });
         }
@@ -140,6 +139,7 @@ public class Client {
     public static class ResponseView extends JPanel {
         private JLabel m_outputLabel = new JLabel("Output: ");
         private JScrollPane m_outputPane = new JScrollPane();
+        private JLabel m_output = new JLabel("test");
 
         public ResponseView(){
             this.layoutView();
@@ -148,7 +148,15 @@ public class Client {
         private void layoutView() {
             this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             this.add(this.m_outputLabel);
+            this.add(this.m_output);
             this.add(this.m_outputPane);
+//			try {
+//				if(m_in != null){
+//					m_output.setText(m_in.readLine());
+//				}
+//			}
+//			catch (IOException e) {
+//			}
         }
     }
 
