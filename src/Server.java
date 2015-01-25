@@ -1,3 +1,4 @@
+//package src;
 import java.io.* ;
 import java.io.InputStream;
 import java.lang.Exception;
@@ -28,13 +29,13 @@ public final class Server {
             throw new Exception(PORT_ERROR);
         }
         // Establish the listen socket.
-        ServerSocket socket = new ServerSocket(port);
+        ServerSocket sock = new ServerSocket(port);
         m_shapes = new Vector<>();
 
         // Process HTTP service requests in an infinite loop.
         while (true) {
             // Listen for a TCP connection request.
-            Socket connection = socket.accept();
+            Socket connection = sock.accept();
 
             // Construct an object to process the HTTP request message.
             ShapeRequest request = new ShapeRequest(connection);
@@ -51,8 +52,8 @@ public final class Server {
     public static class ShapeRequest implements Runnable {
         Socket m_socket;
 
-        public ShapeRequest(Socket socket) throws Exception{
-            m_socket = socket;
+        public ShapeRequest(Socket sock) throws Exception{
+            m_socket = sock;
         }
         // Implement the run() method of the Runnable interface.
 
