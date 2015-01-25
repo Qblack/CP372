@@ -1,4 +1,4 @@
-package src;
+//package src;
 import javax.swing.*;
 
 import java.awt.*;
@@ -15,6 +15,11 @@ public class Client {
 	static PrintWriter m_out = null;
 	static BufferedReader m_in = null;
 	static JTextArea m_display = new JTextArea(3,10);
+    static JButton m_connectButton = new JButton("Connect");
+    static JButton m_disconnectButton = new JButton("Disconnect");
+    static JButton m_postButton = new JButton("POST");
+    static JButton m_getButton = new JButton("GET");
+	
 	
     private static void createAndShowGUI() {
     	final MainView view = new Client.MainView();
@@ -37,8 +42,6 @@ public class Client {
     public static class ConnectionView extends JPanel {
         final private String IP_FORMAT = "###.###.###.###";
         final private String PORT_FORMAT = "######";
-        private JButton m_connectButton = new JButton("Connect");
-        private JButton m_disconnectButton = new JButton("Disconnect");
         private JLabel m_ipLabel = new JLabel("IP: ");
         private JLabel m_portLabel = new JLabel("PORT: ");
         private JTextField m_ipText = new JTextField(IP_FORMAT.length());
@@ -54,8 +57,9 @@ public class Client {
             this.add(this.m_ipText);
             this.add(this.m_portLabel);
             this.add(this.m_portText);
-            this.add(this.m_connectButton);
-            this.add(this.m_disconnectButton);
+            this.add(m_connectButton);
+            this.add(m_disconnectButton);
+            m_disconnectButton.setEnabled(false);
         
 	        m_connectButton.addActionListener(new ActionListener() {
 	    	  public void actionPerformed(ActionEvent evt) {
@@ -74,7 +78,13 @@ public class Client {
 	    		} catch (IOException e) {
 	    		    System.err.println("Caught IOException: " + e.getMessage());
 	    		}
+	    		//on successful connect, disable connect button and show disconnect as well as POST/GET
+	    		m_connectButton.setEnabled(false);
+	    		m_disconnectButton.setEnabled(true);
+	    		m_postButton.setEnabled(true);
+	    		m_getButton.setEnabled(true);
  	    	  }
+	    	  
 	    	});
 	        
 	        m_disconnectButton.addActionListener(new ActionListener() {
@@ -86,6 +96,11 @@ public class Client {
 						}catch (IOException e){
 							System.out.println(e);
 						}
+		    		//on successful disconnect, disable disconnect & POST/GET button and show connect
+		    		m_connectButton.setEnabled(true);
+		    		m_disconnectButton.setEnabled(false);
+		    		m_postButton.setEnabled(false);
+		    		m_getButton.setEnabled(false);
 		    	  }
 		    });
         }
@@ -94,8 +109,6 @@ public class Client {
     public static class RequestView extends JPanel {
         private JTextArea m_inputText = new JTextArea(3,10);
         private JLabel m_inputLabel = new JLabel("Input: ");
-        private JButton m_postButton = new JButton("POST");
-        private JButton m_getButton = new JButton("GET");
 
         public RequestView() {
             this.layoutView();
@@ -107,6 +120,8 @@ public class Client {
             this.add(m_inputText);
             this.add(m_postButton);
             this.add(m_getButton);
+            m_postButton.setEnabled(false);
+            m_getButton.setEnabled(false);
                        
             m_postButton.addActionListener(new ActionListener() {
           	  public void actionPerformed(ActionEvent evt) {
