@@ -198,12 +198,10 @@ public final class Server {
         private boolean m_square = false;
         private boolean m_rhombus = false;
         private boolean m_parallelogram = false;
-        private boolean m_convex = false;
+        private boolean m_concave = false;
 
         public Quadrilateral(Vector<Point> points){
             super.points=points;
-//TODO Test for concavity
-
             orderPoints();
             Point a = super.points.get(0);
             Point b =super.points.get(1);
@@ -214,8 +212,11 @@ public final class Server {
             Line right = new Line(b,c);
             Line top = new Line(c,d);
             Line left = new Line(d,a);
+            int minDiagonal = a.distanceSquared(d) + a.distanceSquared(b);
 
-            if(bottom.lengthSquared==right.lengthSquared&&right.lengthSquared==top.lengthSquared&&top.lengthSquared==left.lengthSquared){
+            if(a.distanceSquared(c)<minDiagonal){
+                this.m_concave = true;
+            }else if(bottom.lengthSquared==right.lengthSquared&&right.lengthSquared==top.lengthSquared&&top.lengthSquared==left.lengthSquared){
                 this.m_rhombus = true;
                 if(bottom.slope==0 && left.slope==Integer.MAX_VALUE){
                     this.m_square = true;
@@ -256,8 +257,6 @@ public final class Server {
 
 
         public class Line {
-
-
             public Point[] pair = new Point[2];
             public double slope = 0;
             public int lengthSquared = 0;
@@ -326,7 +325,7 @@ public final class Server {
         }
 
         public boolean isConvex() {
-            return m_convex;
+            return m_concave;
         }
 
         public boolean isParallelogram() {
