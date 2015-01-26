@@ -252,48 +252,49 @@ public final class Server {
     }
 
     private static class Quadrilateral extends Shape {
-        private boolean m_quadrilateral = false;
-        private boolean m_trapezoid = false;
-        private boolean m_rectangle = false;
-        private boolean m_square = false;
-        private boolean m_rhombus = false;
-        private boolean m_parallelogram = false;
-        private boolean m_concave = false;
+        private boolean m_isQuadrilateral = false;
+        private boolean m_isTrapezoid = false;
+        private boolean m_isRectangle = false;
+        private boolean m_isSquare = false;
+        private boolean m_isRhombus = false;
+        private boolean m_isParallelogram = false;
+        private boolean m_isConcave = false;
 
         public Quadrilateral(Vector<Point> points){
             super.points = points;
-            this.m_quadrilateral = !(hasPointOverlap() || hasLineSegment());
+            this.m_isQuadrilateral = !(hasPointOverlap() || hasLineSegment());
+            if(m_isParallelogram){
+                orderPoints();
+                Point a = super.points.get(0);
+                Point b = super.points.get(1);
+                Point c = super.points.get(2);
+                Point d = super.points.get(3);
 
-            orderPoints();
-            Point a = super.points.get(0);
-            Point b = super.points.get(1);
-            Point c = super.points.get(2);
-            Point d = super.points.get(3);
+                Line bottom = new Line(a,b);
+                Line right = new Line(b,c);
+                Line top = new Line(c,d);
+                Line left = new Line(d,a);
+                int minDiagonal = a.distanceSquared(d) + a.distanceSquared(b);
 
-            Line bottom = new Line(a,b);
-            Line right = new Line(b,c);
-            Line top = new Line(c,d);
-            Line left = new Line(d,a);
-            int minDiagonal = a.distanceSquared(d) + a.distanceSquared(b);
-
-            if(a.distanceSquared(c)<minDiagonal){
-                this.m_concave = true;
-            }else if(bottom.lengthSquared==right.lengthSquared&&right.lengthSquared==top.lengthSquared&&top.lengthSquared==left.lengthSquared){
-                this.m_rhombus = true;
-                if(bottom.slope==0 && left.slope==Integer.MAX_VALUE){
-                    this.m_square = true;
-                    this.m_rectangle = true;
-                    this.m_parallelogram = true;
-                }
-            }else if(bottom.lengthSquared==top.lengthSquared && left.lengthSquared==right.lengthSquared){
-                if(bottom.areParellel(top) && left.areParellel(right)){
-                    this.m_parallelogram = true;
-                    if(bottom.slope==0&&left.slope==Integer.MAX_VALUE){
-                        this.m_rectangle=true;
+                if(a.distanceSquared(c)<minDiagonal){
+                    this.m_isConcave = true;
+                }else if(bottom.lengthSquared==right.lengthSquared&&right.lengthSquared==top.lengthSquared&&top.lengthSquared==left.lengthSquared){
+                    this.m_isRhombus = true;
+                    if(bottom.slope==0 && left.slope==Integer.MAX_VALUE){
+                        this.m_isSquare = true;
+                        this.m_isRectangle = true;
+                        this.m_isParallelogram = true;
                     }
+                }else if(bottom.lengthSquared==top.lengthSquared && left.lengthSquared==right.lengthSquared){
+                    if(bottom.areParellel(top) && left.areParellel(right)){
+                        this.m_isParallelogram = true;
+                        if(bottom.slope==0&&left.slope==Integer.MAX_VALUE){
+                            this.m_isRectangle =true;
+                        }
+                    }
+                }else if(bottom.areParellel(top)||left.areParellel(right)){
+                    this.m_isTrapezoid = true;
                 }
-            }else if(bottom.areParellel(top)||left.areParellel(right)){
-                this.m_trapezoid = true;
             }
         }
 
@@ -391,31 +392,31 @@ public final class Server {
         }
 
         public boolean isTrapezoid() {
-            return m_trapezoid;
+            return m_isTrapezoid;
         }
 
         public boolean isQuadrilateral() {
-            return m_quadrilateral;
+            return m_isQuadrilateral;
         }
 
         public boolean isConvex() {
-            return m_concave;
+            return m_isConcave;
         }
 
         public boolean isParallelogram() {
-            return m_parallelogram;
+            return m_isParallelogram;
         }
 
         public boolean isRhombus() {
-            return m_rhombus;
+            return m_isRhombus;
         }
 
         public boolean isSquare() {
-            return m_square;
+            return m_isSquare;
         }
 
         public boolean isRectangle() {
-            return m_rectangle;
+            return m_isRectangle;
         }
 
         public class Line {
@@ -460,45 +461,49 @@ public final class Server {
 
     private static class Triangle extends Shape {
 
-        private Boolean isIsosceles =false;
-        private Boolean isRightAngled = false;
-        private Boolean isEquilateral = false;
-        private Boolean isScalene = false;
-        private Boolean isTriangle = true;
+        private Boolean m_isIsosceles =false;
+        private Boolean m_isRightAngled = false;
+        private Boolean m_isEquilateral = false;
+        private Boolean m_isScalene = false;
+        private Boolean m_isTriangle = true;
 
         private Triangle(Vector<Point> points){
             super.points = points;
-            Point first = super.points.get(0);
-            Point second =super.points.get(1);
-            Point third = super.points.get(2);
 
-            int a2 = first.distanceSquared(second);
-            int b2 = first.distanceSquared(third);
-            int c2 = second.distanceSquared(third);
+            m_isTriangle = !(this.hasLineSegment() || this.hasPointOverlap());
+            if(m_isTriangle){
+                Point first = super.points.get(0);
+                Point second =super.points.get(1);
+                Point third = super.points.get(2);
 
-            ArrayList<Integer> distances = new ArrayList<>();
-            distances.add(a2);
-            distances.add(b2);
-            distances.add(c2);
-            Collections.sort(distances);
-            c2 = distances.remove(2);
-            b2 = distances.remove(1);
-            a2 = distances.remove(0);
+                int a2 = first.distanceSquared(second);
+                int b2 = first.distanceSquared(third);
+                int c2 = second.distanceSquared(third);
 
-            if((a2+b2)>=c2&&(a2+c2)>=b2&&(b2+c2)>=a2){
-                if(a2 == b2 && a2 == c2){
-                    this.isEquilateral = true;
-                    this.isIsosceles = true;
-                }else if (c2==(a2+b2)){
-                    this.isIsosceles = true;
-                    this.isRightAngled = true;
-                }else if(a2==b2 || a2==c2|| c2==b2){
-                    this.isIsosceles = true;
+                ArrayList<Integer> distances = new ArrayList<>();
+                distances.add(a2);
+                distances.add(b2);
+                distances.add(c2);
+                Collections.sort(distances);
+                c2 = distances.remove(2);
+                b2 = distances.remove(1);
+                a2 = distances.remove(0);
+
+                if((a2+b2)>=c2&&(a2+c2)>=b2&&(b2+c2)>=a2){
+                    if(a2 == b2 && a2 == c2){
+                        this.m_isEquilateral = true;
+                        this.m_isIsosceles = true;
+                    }else if (c2==(a2+b2)){
+                        this.m_isIsosceles = true;
+                        this.m_isRightAngled = true;
+                    }else if(a2==b2 || a2==c2|| c2==b2){
+                        this.m_isIsosceles = true;
+                    }else{
+                        this.m_isScalene = true;
+                    }
                 }else{
-                    this.isScalene = true;
+                    m_isTriangle = false;
                 }
-            }else{
-                isTriangle = false;
             }
         }
 
@@ -552,21 +557,21 @@ public final class Server {
         }
 
         public Boolean isEquilateral() {
-            return this.isEquilateral;
+            return this.m_isEquilateral;
         }
         public Boolean isRightAngled() {
-            return this.isRightAngled;
+            return this.m_isRightAngled;
         }
         public Boolean isIsosceles() {
-            return this.isIsosceles;
+            return this.m_isIsosceles;
         }
 
         public Boolean isScalene() {
-            return this.isScalene;
+            return this.m_isScalene;
         }
 
         public Boolean isTriangle() {
-            return this.isTriangle;
+            return this.m_isTriangle;
         }
     }
 
