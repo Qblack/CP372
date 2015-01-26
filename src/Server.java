@@ -1,4 +1,4 @@
-//package src;
+package src;
 import java.io.* ;
 import java.io.InputStream;
 import java.lang.Exception;
@@ -186,7 +186,9 @@ public final class Server {
             if (numberPoints%2!=0 && (numberPoints/3!=2 || numberPoints/4!=2)){
                 throw new ProtocolException("403: Invalid Number of Points");
             }
-
+            if (tokens.toString().matches("^\\d+$")){
+            	throw new ProtocolException("405: POST request accepts integers only");
+            }
             Vector<Point> points = getPointVector(tokens);
             if (points.size()==3){
                 Triangle triangle = new Triangle(points);
