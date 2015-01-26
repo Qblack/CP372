@@ -86,8 +86,15 @@ public final class Server {
 		            String method = tokens.nextToken();
 		            if (Objects.equals(method, "GET")){
 		                Vector<Shape> results = handleGet(tokens);
-		                for (Shape result : results) {
-		                    outputStream.writeBytes(result.toString()+"\n");
+		                int index =0;
+                        for (Shape result : results) {
+                            StringBuilder output = new StringBuilder();
+                            if(index!=results.size()-1){
+                                output.append("\n");
+                            }
+                            output.append(result.toString());
+                            outputStream.writeBytes(output.toString() );
+                            index+=1;
 		                }
 		                outputStream.writeBytes(CRLF);
 		            }else if (Objects.equals(method, "POST")){
@@ -247,7 +254,6 @@ public final class Server {
         }
 
         public abstract boolean equals(Object other);
-        public abstract String toString();
         public abstract boolean hasLineSegment();
         public abstract boolean hasPointOverlap();
 
@@ -255,6 +261,20 @@ public final class Server {
             int crossProduct = (c.y - a.y) * (b.x - a.x) - (c.x - a.x) * (b.y - a.y);
             return crossProduct == 0;
         }
+
+        public String toString() {
+            StringBuilder output = new StringBuilder();
+            boolean first = true;
+            for (Point point : this.points) {
+                if(!first){
+                    output.append(",");
+                }
+                output.append(point.toString());
+                first=false;
+            }
+            return output.toString();
+        }
+
     }
 
     private static class Quadrilateral extends Shape {
@@ -388,14 +408,7 @@ public final class Server {
             return equal;
         }
 
-        @Override
-        public String toString() {
-            String output = "";
-            for (Point point : this.points) {
-                output+= point.toString()+",";
-            }
-            return output;
-        }
+
 
         public boolean isTrapezoid() {
             return m_isTrapezoid;
@@ -525,15 +538,6 @@ public final class Server {
                 }
             }
             return equal;
-        }
-
-        @Override
-        public String toString() {
-            String output = "";
-            for (Point point : this.points) {
-                output+= point.toString()+",";
-            }
-            return output;
         }
 
         @Override
