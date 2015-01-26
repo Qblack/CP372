@@ -183,10 +183,8 @@ public final class Server {
             if (numberPoints%2!=0 && (numberPoints/3!=2 || numberPoints/4!=2)){
                 throw new ProtocolException("403: Invalid Number of Points");
             }
-            if (tokens.toString().matches("^\\d+$")){
-            	throw new ProtocolException("405: POST request accepts integers only");
-            }
-            Vector<Point> points = getPointVector(tokens);
+
+            Vector<Point> points = constructPointVector(tokens);
             if (points.size()==3){
                 Triangle triangle = new Triangle(points);
                 if(triangle.isTriangle()){
@@ -218,14 +216,18 @@ public final class Server {
             return shapeType;
         }
 
-        private Vector<Point> constructPointVector(StringTokenizer tokens) {
+        private Vector<Point> constructPointVector(StringTokenizer tokens) throws ProtocolException{
             Vector<Point> points = new Vector<>();
-            while(tokens.hasMoreTokens()){
-                int xCoordinate = Integer.parseInt(tokens.nextToken());
-                int yCoordinate = Integer.parseInt(tokens.nextToken());
-                Point point = new Point(xCoordinate,yCoordinate);
-                points.add(point);
-            }
+            try {
+            	while(tokens.hasMoreTokens()){
+	                int xCoordinate = Integer.parseInt(tokens.nextToken());
+	                int yCoordinate = Integer.parseInt(tokens.nextToken());
+	                Point point = new Point(xCoordinate,yCoordinate);
+	                points.add(point);
+            	}
+        	}catch (Exception err){
+        		throw new ProtocolException("405: POST Requires Integers Only");
+        	}	
             return points;
         }
     }
