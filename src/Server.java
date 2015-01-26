@@ -80,32 +80,33 @@ public final class Server {
             // Get the request line of the HTTP request message.
             String requestLine = reader.readLine();
             
-            try{
-	            while(requestLine!=null){
-	                StringTokenizer tokens = new StringTokenizer(requestLine);
-	                String method = tokens.nextToken();
-	                if (Objects.equals(method, "GET")){
-	                    Vector<Shape> results = handleGet(tokens);
-	                    for (Shape result : results) {
-	                        outputStream.writeBytes(result.toString()+"\n");
-	                    }
-	                    outputStream.writeBytes(CRLF);
-	                }else if (Objects.equals(method, "POST")){
-	                    ShapeType shapeType = handlePost(tokens);
-	                    if (shapeType != ShapeType.Invalid){
+            while(requestLine!=null){
+            	try{
+		            StringTokenizer tokens = new StringTokenizer(requestLine);
+		            String method = tokens.nextToken();
+		            if (Objects.equals(method, "GET")){
+		                Vector<Shape> results = handleGet(tokens);
+		                for (Shape result : results) {
+		                    outputStream.writeBytes(result.toString()+"\n");
+		                }
+		                outputStream.writeBytes(CRLF);
+		            }else if (Objects.equals(method, "POST")){
+		                ShapeType shapeType = handlePost(tokens);
+		                if (shapeType != ShapeType.Invalid){
 		                    outputStream.writeBytes("OK "+ shapeType);
 		                    outputStream.writeBytes(CRLF);
-	                    }else{
-	                    	throw new ProtocolException("403: Invalid Number of Points");
-	                    }
-	                }else{
-	                    throw new ProtocolException("400: Bad Request");
-	                }
-	                requestLine = reader.readLine();
-	            }
-            }catch(ProtocolException err){
-            	outputStream.writeBytes(err.getMessage());
-                outputStream.writeBytes(CRLF);
+		                }else{
+		                	throw new ProtocolException("403: Invalid Number of Points");
+		                }
+		            }else{
+		                throw new ProtocolException("400: Bad Request");
+		            }
+		            
+			        }catch(ProtocolException err){
+		            	outputStream.writeBytes(err.getMessage());
+		                outputStream.writeBytes(CRLF);
+			        }
+            	requestLine = reader.readLine();
             }
         }
 
