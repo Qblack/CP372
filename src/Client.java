@@ -1,5 +1,6 @@
 package src;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -186,7 +187,9 @@ public class Client {
 
         private void layoutView() {
             this.setLayout(new BorderLayout());
-            this.add(this.m_connectionView,BorderLayout.NORTH);
+            this.m_connectionView.setBorder(new EmptyBorder(5,5,5,5));
+            this.add(this.m_connectionView, BorderLayout.NORTH);
+
             this.add(this.m_requestView,BorderLayout.CENTER);
             this.add(this.m_responseView,BorderLayout.SOUTH);
         }
