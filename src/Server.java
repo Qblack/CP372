@@ -493,21 +493,16 @@ public final class Server {
                 c2 = distances.remove(2);
                 b2 = distances.remove(1);
                 a2 = distances.remove(0);
-
-                if((a2+b2)>=c2&&(a2+c2)>=b2&&(b2+c2)>=a2){
-                    if(a2 == b2 && a2 == c2){
-                        this.m_isEquilateral = true;
-                        this.m_isIsosceles = true;
-                    }else if (c2==(a2+b2)){
-                        this.m_isIsosceles = true;
-                        this.m_isRightAngled = true;
-                    }else if(a2==b2 || a2==c2|| c2==b2){
-                        this.m_isIsosceles = true;
-                    }else{
-                        this.m_isScalene = true;
-                    }
+                if(a2 == b2 && a2 == c2){
+                    this.m_isEquilateral = true;
+                    this.m_isIsosceles = true;
+                }else if (c2==(a2+b2)){
+                    this.m_isIsosceles = true;
+                    this.m_isRightAngled = true;
+                }else if(a2==b2 || a2==c2|| c2==b2){
+                    this.m_isIsosceles = true;
                 }else{
-                    m_isTriangle = false;
+                    this.m_isScalene = true;
                 }
             }
         }
