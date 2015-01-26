@@ -145,7 +145,7 @@ public class Client {
                   try {
                 	  String line_out = m_in.readLine();
                 	  while (m_in.ready()){
-                		  line_out = line_out + m_in.readLine() + "\n";
+                		  line_out = line_out + "\n" + m_in.readLine();
                 		  }
                 	  m_display.replaceRange(line_out, 0, m_display.getText().length());
                 	  }catch (IOException e) {
