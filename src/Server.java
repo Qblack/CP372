@@ -244,6 +244,11 @@ public final class Server {
         public abstract String toString();
         public abstract boolean hasLineSegment();
         public abstract boolean hasPointOverlap();
+
+        public boolean crossProduct(Point a, Point b, Point c) {
+            int crossProduct = (c.y - a.y) * (b.x - a.x) - (c.x - a.x) * (b.y - a.y);
+            return crossProduct == 0;
+        }
     }
 
     private static class Quadrilateral extends Shape {
@@ -345,11 +350,6 @@ public final class Server {
                 return true;
             }
             return false;
-        }
-
-        private boolean crossProduct(Point a, Point b, Point c) {
-            int crossProduct = (c.y - a.y) * (b.x - a.x) - (c.x - a.x) * (b.y - a.y);
-            return crossProduct == 0;
         }
 
         @Override
@@ -532,12 +532,23 @@ public final class Server {
 
         @Override
         public boolean hasLineSegment() {
-            return false;
+            Point a = super.points.get(0);
+            Point b = super.points.get(1);
+            Point c = super.points.get(2);
+            return super.crossProduct(a, b, c);
         }
+
 
         @Override
         public boolean hasPointOverlap() {
-            return false;
+            if(super.points.get(0) == super.points.get(1)||
+                    super.points.get(0) == super.points.get(2)){
+                return true;
+            }else if(super.points.get(1) == super.points.get(2)) {
+                return true;
+            }else{
+                return false;
+            }
         }
 
         public Boolean isEquilateral() {
