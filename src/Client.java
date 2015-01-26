@@ -1,4 +1,4 @@
-//package src;
+package src;
 import javax.swing.*;
 
 import java.awt.*;
@@ -14,7 +14,7 @@ public class Client {
 	static Socket m_socket = null;
 	static PrintWriter m_out = null;
 	static BufferedReader m_in = null;
-	static JTextArea m_display = new JTextArea(3,10);
+	static JTextArea m_display = new JTextArea(3,3);
     static JButton m_connectButton = new JButton("Connect");
     static JButton m_disconnectButton = new JButton("Disconnect");
     static JButton m_postButton = new JButton("POST");
@@ -142,11 +142,11 @@ public class Client {
           	  public void actionPerformed(ActionEvent evt) {
                   m_out.println("GET " + m_inputText.getText());
                   try {
-                	  String line_out = "";
+                	  String line_out = m_in.readLine();
                 	  while (m_in.ready()){
-                		  line_out = line_out + "\n" + m_in.readLine();
-                		  m_display.replaceRange(line_out, 0, m_display.getText().length());
+                		  line_out = line_out + m_in.readLine() + "\n";
                 		  }
+                	  m_display.replaceRange(line_out, 0, m_display.getText().length());
                 	  }catch (IOException e) {
   					}
           	  }
@@ -167,7 +167,8 @@ public class Client {
             this.add(this.m_outputLabel);
             m_display.setEditable(false);
             m_outputPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-            this.add(this.m_outputPane.add(m_display));
+            m_outputPane.setViewportView(m_display);
+            this.add(this.m_outputPane);
         }
     }
 
