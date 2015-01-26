@@ -133,6 +133,7 @@ public class Client {
 		                	m_display.replaceRange(line_out, 0, m_display.getText().length());
 		                }
 					}catch (IOException e) {
+						System.out.println(e);
 					}
             	}
             });
@@ -140,13 +141,13 @@ public class Client {
             m_getButton.addActionListener(new ActionListener() {
           	  public void actionPerformed(ActionEvent evt) {
                   m_out.println("GET " + m_inputText.getText());
-
                   try {
-                  	String line_out = m_in.readLine();
-  		                if ( line_out!= null){
-  		                	m_display.replaceRange(line_out, 0, m_display.getText().length());
-  		                }
-  					}catch (IOException e) {
+                	  String line_out = "";
+                	  while (m_in.ready()){
+                		  line_out = line_out + "\n" + m_in.readLine();
+                		  m_display.replaceRange(line_out, 0, m_display.getText().length());
+                		  }
+                	  }catch (IOException e) {
   					}
           	  }
            });
