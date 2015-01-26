@@ -89,11 +89,11 @@ public final class Server {
 		                int index =0;
                         for (Shape result : results) {
                             StringBuilder output = new StringBuilder();
+                            output.append(result.toString());
                             if(index!=results.size()-1){
                                 output.append("\n");
                             }
-                            output.append(result.toString());
-                            outputStream.writeBytes(output.toString() );
+                            outputStream.writeBytes(output.toString());
                             index+=1;
 		                }
 		                outputStream.writeBytes(CRLF);
