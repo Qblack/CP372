@@ -86,15 +86,11 @@ public final class Server {
 		            String method = tokens.nextToken();
 		            if (Objects.equals(method, "GET")){
 		                Vector<Shape> results = handleGet(tokens);
-		                int index =0;
                         for (Shape result : results) {
                             StringBuilder output = new StringBuilder();
                             output.append(result.toString());
-                            if(index!=results.size()-1){
-                                output.append("\n");
-                            }
+                            output.append("\n");
                             outputStream.writeBytes(output.toString());
-                            index+=1;
 		                }
 		                outputStream.writeBytes(CRLF);
 		            }else if (Objects.equals(method, "POST")){
