@@ -277,6 +277,7 @@ public final class Server {
     //CLASSES
     private static abstract class Shape{
         public Vector<Point> points;
+        public Vector<Line> vertices;
         public int count = 1;
 
         public void incrementCount() {
@@ -287,8 +288,15 @@ public final class Server {
             return count;
         }
 
-        public double perimeter = 0;
-        public abstract double findPerimeter();
+        private double perimeter = 0;
+        public double getPerimeter(){
+            if (perimeter==0){
+                for (Line vertice : vertices) {
+                    perimeter += Math.sqrt(vertice.lengthSquared);
+                }
+            }
+            return perimeter;
+        }
 
         public double area = 0;
         public abstract double findArea();
@@ -327,41 +335,41 @@ public final class Server {
         private boolean m_isConcave = false;
 
 
-        public Quadrilateral(Vector<Point> points){
+        public Quadrilateral(Vector<Point> points) {
             super.points = points;
             this.m_isQuadrilateral = !(hasPointOverlap() || hasLineSegment());
-            if(m_isQuadrilateral){
+            if (m_isQuadrilateral) {
                 orderPoints();
                 Point a = super.points.get(0);
                 Point b = super.points.get(1);
                 Point c = super.points.get(2);
                 Point d = super.points.get(3);
 
-                Line bottom = new Line(a,b);
-                Line right = new Line(b,c);
-                Line top = new Line(c,d);
-                Line left = new Line(d,a);
+                Line bottom = new Line(a, b);
+                Line right = new Line(b, c);
+                Line top = new Line(c, d);
+                Line left = new Line(d, a);
                 int minDiagonal = a.distanceSquared(d) + a.distanceSquared(b);
 
-                if(a.distanceSquared(c)<minDiagonal){
+                if (a.distanceSquared(c) < minDiagonal) {
                     this.m_isConcave = true;
-                }else if(bottom.lengthSquared==right.lengthSquared&&right.lengthSquared==top.lengthSquared&&top.lengthSquared==left.lengthSquared){
+                } else if (bottom.lengthSquared == right.lengthSquared && right.lengthSquared == top.lengthSquared && top.lengthSquared == left.lengthSquared) {
                     this.m_isRhombus = true;
-                    if(bottom.slope==0 && left.slope==Integer.MAX_VALUE){
+                    if (bottom.slope == 0 && left.slope == Integer.MAX_VALUE) {
                         this.m_isSquare = true;
                         this.m_isRectangle = true;
                         this.m_isParallelogram = true;
                         this.m_isTrapezoid = true;
                     }
-                }else if(bottom.lengthSquared==top.lengthSquared && left.lengthSquared==right.lengthSquared){
-                    if(bottom.areParellel(top) && left.areParellel(right)){
+                } else if (bottom.lengthSquared == top.lengthSquared && left.lengthSquared == right.lengthSquared) {
+                    if (bottom.areParellel(top) && left.areParellel(right)) {
                         this.m_isParallelogram = true;
-                        if(bottom.slope==0&&left.slope==Integer.MAX_VALUE){
-                            this.m_isRectangle =true;
+                        if (bottom.slope == 0 && left.slope == Integer.MAX_VALUE) {
+                            this.m_isRectangle = true;
                             this.m_isTrapezoid = true;
                         }
                     }
-                }else if(bottom.areParellel(top)||left.areParellel(right)){
+                } else if (bottom.areParellel(top) || left.areParellel(right)) {
                     this.m_isTrapezoid = true;
                 }
             }
@@ -374,7 +382,7 @@ public final class Server {
             int bottomLeftIndex = getBottomLeft();
             Point pointA = super.points.remove(bottomLeftIndex);
             ArrayList<Line> vertices = new ArrayList<>();
-            for(Point point : super.points){
+            for (Point point : super.points) {
                 vertices.add(new Line(pointA, point));
             }
             super.points.removeAllElements();
@@ -389,14 +397,14 @@ public final class Server {
         private int getBottomLeft() {
             Point bottomLeft = super.points.elementAt(0);
             int bottomLeftIndex = 0;
-            for(int position =1; position< super.points.size() ;position++){
+            for (int position = 1; position < super.points.size(); position++) {
                 Point point = super.points.elementAt(position);
-                if( point.getX()==bottomLeft.getX()){
-                    if(point.getY() < bottomLeft.getY()){
+                if (point.getX() == bottomLeft.getX()) {
+                    if (point.getY() < bottomLeft.getY()) {
                         bottomLeft = point;
                         bottomLeftIndex = position;
                     }
-                }else if( point.getX()<bottomLeft.getX()){
+                } else if (point.getX() < bottomLeft.getX()) {
                     bottomLeft = point;
                     bottomLeftIndex = position;
                 }
@@ -410,13 +418,13 @@ public final class Server {
             Point b = super.points.get(1);
             Point c = super.points.get(2);
             Point d = super.points.get(3);
-            if(crossProduct(a, b, c)){
+            if (crossProduct(a, b, c)) {
                 return true;
-            }else if(crossProduct(a, b, d)){
+            } else if (crossProduct(a, b, d)) {
                 return true;
-            }else if (crossProduct(a, c, d)){
+            } else if (crossProduct(a, c, d)) {
                 return true;
-            }else if(crossProduct(b, c, d)){
+            } else if (crossProduct(b, c, d)) {
                 return true;
             }
             return false;
@@ -424,19 +432,14 @@ public final class Server {
 
         @Override
         public boolean hasPointOverlap() {
-            if(super.points.get(0) == super.points.get(1)||
-                    super.points.get(0) == super.points.get(2)||
-                    super.points.get(0) == super.points.get(3)){
+            if (super.points.get(0) == super.points.get(1) ||
+                    super.points.get(0) == super.points.get(2) ||
+                    super.points.get(0) == super.points.get(3)) {
                 return true;
-            }else if(super.points.get(1) == super.points.get(2)||
+            } else if (super.points.get(1) == super.points.get(2) ||
                     super.points.get(1) == super.points.get(3)) {
                 return true;
-            }else return super.points.get(2) == super.points.get(3);
-        }
-
-        @Override
-        public double findPerimeter() {
-            return 0;
+            } else return super.points.get(2) == super.points.get(3);
         }
 
         @Override
@@ -448,19 +451,18 @@ public final class Server {
         public boolean equals(Object obj) {
             if (obj == null) {
                 return false;
-            }else if (getClass() != obj.getClass()) {
+            } else if (getClass() != obj.getClass()) {
                 return false;
             }
             final Quadrilateral other = (Quadrilateral) obj;
             Boolean equal = true;
             for (Point point : other.points) {
-                if(!super.points.contains(point)){
+                if (!super.points.contains(point)) {
                     equal = false;
                 }
             }
             return equal;
         }
-
 
 
         public boolean isTrapezoid() {
@@ -491,44 +493,6 @@ public final class Server {
             return m_isRectangle;
         }
 
-        public class Line {
-            public Point[] pair = new Point[2];
-            public double slope = 0;
-            public int lengthSquared = 0;
-            public Line(Point point1, Point point2){
-                this.pair[0] = point1;
-                this.pair[1] = point2;
-                this.lengthSquared = point1.distanceSquared(point2);
-                this.slope = point1.slopeBetweenPoints(point2);
-            }
-
-            public boolean areParellel(Line other){
-                Point p1 = this.pair[0];
-                Point p2 = this.pair[1];
-                Point p3 = other.pair[0];
-                Point p4 = other.pair[1];
-                int firstHalf = (p4.getX()-p3.getX())*(p2.getY()-p1.getY());
-                int secondHalf = (p4.getY()-p3.getY())*(p2.getX()-p1.getX());
-                return (firstHalf-secondHalf)==0;
-            }
-
-        }
-        public class LineSlopeComparator implements Comparator<Line> {
-            /**
-             * @param line1
-             * @param line2
-             * @return a negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater than the second.
-             */
-            @Override
-            public int compare(Line line1, Line line2) {
-                if(line1.slope== line2.slope){
-                    return 0;
-                }else if(line1.slope< line2.slope){
-                    return -1;
-                }
-                return 1;
-            }
-        }
     }
 
     private static class Triangle extends Shape {
@@ -547,6 +511,10 @@ public final class Server {
                 Point first = super.points.get(0);
                 Point second =super.points.get(1);
                 Point third = super.points.get(2);
+
+                super.vertices.add(new Line(first,second));
+                super.vertices.add(new Line(second,third));
+                super.vertices.add(new Line(third,first));
 
                 int a2 = first.distanceSquared(second);
                 int b2 = first.distanceSquared(third);
@@ -572,11 +540,6 @@ public final class Server {
                     this.m_isScalene = true;
                 }
             }
-        }
-
-        @Override
-        public double findPerimeter() {
-            return 0;
         }
 
         @Override
@@ -689,7 +652,44 @@ public final class Server {
         public String toString(){
             return "("+this.x+","+this.y+")";
         }
+    }
+    public static class Line {
+        public Point[] pair = new Point[2];
+        public double slope = 0;
+        public int lengthSquared = 0;
+        public Line(Point point1, Point point2){
+            this.pair[0] = point1;
+            this.pair[1] = point2;
+            this.lengthSquared = point1.distanceSquared(point2);
+            this.slope = point1.slopeBetweenPoints(point2);
+        }
 
+        public boolean areParellel(Line other){
+            Point p1 = this.pair[0];
+            Point p2 = this.pair[1];
+            Point p3 = other.pair[0];
+            Point p4 = other.pair[1];
+            int firstHalf = (p4.getX()-p3.getX())*(p2.getY()-p1.getY());
+            int secondHalf = (p4.getY()-p3.getY())*(p2.getX()-p1.getX());
+            return (firstHalf-secondHalf)==0;
+        }
+
+    }
+    public static class LineSlopeComparator implements Comparator<Line> {
+        /**
+         * @param line1
+         * @param line2
+         * @return a negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater than the second.
+         */
+        @Override
+        public int compare(Line line1, Line line2) {
+            if(line1.slope== line2.slope){
+                return 0;
+            }else if(line1.slope< line2.slope){
+                return -1;
+            }
+            return 1;
+        }
     }
 }
 
