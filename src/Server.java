@@ -91,7 +91,7 @@ public final class Server {
                             StringBuilder output = new StringBuilder();
                             output.append(result.toString());
                             if(index!=results.size()-1){
-                                output.append("\n");
+                                output.append("||");
                             }
                             outputStream.writeBytes(output.toString());
                             index+=1;
