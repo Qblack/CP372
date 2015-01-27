@@ -130,9 +130,15 @@ public final class Server {
             String request;
             switch (shapeTypeCharacter) {
                 case "T":
+                    Stream<Triangle> triangleStream = m_shapes.stream()
+                            .filter(shape -> shape instanceof Triangle)
+                            .map(q -> (Triangle) q);
                     do {
                         request = tokens.nextToken();
-                        handleTriangleGets(request, resultShapes);
+                        resultShapes = handleTriangleGets(request, triangleStream);
+                        triangleStream = resultShapes.stream()
+                                .filter(shape -> shape instanceof Triangle)
+                                .map(q -> (Triangle) q);
                     } while (tokens.hasMoreTokens());
                     break;
                 case "Q":
@@ -148,9 +154,16 @@ public final class Server {
         }
 
         private void handleQuadrilateralGets(String request, Vector<Shape> resultShapes) throws ProtocolException {
-            Stream<Quadrilateral> quadrilateralStream = m_shapes.stream()
-                    .filter(shape -> shape instanceof Quadrilateral)
-                    .map(q -> (Quadrilateral) q);
+            Stream<Quadrilateral> quadrilateralStream;
+            if(resultShapes.size()==0){
+               quadrilateralStream = m_shapes.stream()
+                        .filter(shape -> shape instanceof Quadrilateral)
+                        .map(q -> (Quadrilateral) q);
+            }else{
+                quadrilateralStream = resultShapes.stream()
+                        .filter(shape -> shape instanceof Quadrilateral)
+                        .map(q -> (Quadrilateral) q);
+            }
 
             if(request.toLowerCase().equals("square")){
                 quadrilateralStream.filter(Quadrilateral::isSquare).forEach(resultShapes::add);
@@ -174,25 +187,24 @@ public final class Server {
             }
         }
 
-        private void handleTriangleGets(String request, Vector<Shape> resultShapes) throws ProtocolException {
-            Stream<Triangle> triangleStream = m_shapes.stream()
-                    .filter(shape -> shape instanceof Triangle)
-                    .map(t -> (Triangle) t);
+        private Vector<Shape> handleTriangleGets(String request, Stream<Triangle> triangleStream) throws ProtocolException {
+            Vector<Shape> results = new Vector<>();
 
             if(request.toLowerCase().equals("right")){
-                triangleStream.filter(Triangle::isRightAngled).forEach(resultShapes::add);
+                triangleStream.filter(Triangle::isRightAngled).forEach(results::add);
             }else if(request.toLowerCase().equals("isosceles")) {
-                triangleStream.filter(Triangle::isIsosceles).forEach(resultShapes::add);
+                triangleStream.filter(Triangle::isIsosceles).forEach(results::add);
             }else if(request.toLowerCase().equals("equilateral")) {
-                triangleStream.filter(Triangle::isEquilateral).forEach(resultShapes::add);
+                triangleStream.filter(Triangle::isEquilateral).forEach(results::add);
             }else if(request.toLowerCase().equals("scalene")) {
-                triangleStream.filter(Triangle::isScalene).forEach(resultShapes::add);
+                triangleStream.filter(Triangle::isScalene).forEach(results::add);
             }else if(request.matches("^\\d+$")){
                 int numberOf = Integer.parseInt(request);
-                triangleStream.filter(t->t.getCount()>=numberOf).forEach(resultShapes::add);
+                triangleStream.filter(t->t.getCount()>=numberOf).forEach(results::add);
             }else{
                 throw new ProtocolException("402: Invalid Triangle");
             }
+            return  results;
         }
 
         private ShapeType handlePost(StringTokenizer tokens) throws ProtocolException {
@@ -268,7 +280,7 @@ public final class Server {
     //CLASSES
     private static abstract class Shape{
         public Vector<Point> points;
-        public int count = 0;
+        public int count = 1;
 
         public void incrementCount() {
             this.count++;
