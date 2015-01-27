@@ -330,7 +330,7 @@ public final class Server {
         public Quadrilateral(Vector<Point> points){
             super.points = points;
             this.m_isQuadrilateral = !(hasPointOverlap() || hasLineSegment());
-            if(m_isParallelogram){
+            if(m_isQuadrilateral){
                 orderPoints();
                 Point a = super.points.get(0);
                 Point b = super.points.get(1);
@@ -351,12 +351,14 @@ public final class Server {
                         this.m_isSquare = true;
                         this.m_isRectangle = true;
                         this.m_isParallelogram = true;
+                        this.m_isTrapezoid = true;
                     }
                 }else if(bottom.lengthSquared==top.lengthSquared && left.lengthSquared==right.lengthSquared){
                     if(bottom.areParellel(top) && left.areParellel(right)){
                         this.m_isParallelogram = true;
                         if(bottom.slope==0&&left.slope==Integer.MAX_VALUE){
                             this.m_isRectangle =true;
+                            this.m_isTrapezoid = true;
                         }
                     }
                 }else if(bottom.areParellel(top)||left.areParellel(right)){
