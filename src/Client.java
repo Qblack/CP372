@@ -1,4 +1,4 @@
-package src;
+//package src;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -143,15 +143,18 @@ public class Client {
           	  public void actionPerformed(ActionEvent evt) {
                   m_out.println("GET " + m_inputText.getText());
                   try {
-                	  String line_out = m_in.readLine();
-                	  while (m_in.ready()){
-                		  line_out = line_out + "\n" + m_in.readLine();
-                		  }
-                	  m_display.replaceRange(line_out, 0, m_display.getText().length());
-                	  }catch (IOException e) {
-  					}
+                	  String delims = "||";
+                	  String single_out = "";
+                	  String[] line_out = m_in.readLine().split(delims);
+                	  for (int i=0; i<line_out.length; i++) {
+                		  single_out = single_out + line_out[i].toString();
+                	  }
+                	  m_display.replaceRange(single_out, 0, m_display.getText().length());
+                  }catch (IOException e) {
+            	 		System.out.println(e);
+                  }
           	  }
-           });
+            });
         }
     }
 
