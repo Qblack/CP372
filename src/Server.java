@@ -149,8 +149,8 @@ public final class Server {
                         request = tokens.nextToken();
                         resultShapes = handleQuadrilateralGets(request, quadrilateralStream);
                         quadrilateralStream = resultShapes.stream()
-                                .filter(shape-> shape instanceof Quadrilateral)
-                                .map(q -> (Quadrilateral)q);
+                                .filter(shape -> shape instanceof Quadrilateral)
+                                .map(q -> (Quadrilateral) q);
                     } while (tokens.hasMoreTokens());
                     break;
                 default:
@@ -287,6 +287,12 @@ public final class Server {
             return count;
         }
 
+        public double perimeter = 0;
+        public abstract double findPerimeter();
+
+        public double area = 0;
+        public abstract double findArea();
+
         public abstract boolean equals(Object other);
         public abstract boolean hasLineSegment();
         public abstract boolean hasPointOverlap();
@@ -319,6 +325,7 @@ public final class Server {
         private boolean m_isRhombus = false;
         private boolean m_isParallelogram = false;
         private boolean m_isConcave = false;
+
 
         public Quadrilateral(Vector<Point> points){
             super.points = points;
@@ -423,6 +430,16 @@ public final class Server {
                     super.points.get(1) == super.points.get(3)) {
                 return true;
             }else return super.points.get(2) == super.points.get(3);
+        }
+
+        @Override
+        public double findPerimeter() {
+            return 0;
+        }
+
+        @Override
+        public double findArea() {
+            return 0;
         }
 
         @Override
@@ -553,6 +570,16 @@ public final class Server {
                     this.m_isScalene = true;
                 }
             }
+        }
+
+        @Override
+        public double findPerimeter() {
+            return 0;
+        }
+
+        @Override
+        public double findArea() {
+            return 0;
         }
 
         @Override
