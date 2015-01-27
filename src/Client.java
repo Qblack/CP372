@@ -1,6 +1,7 @@
 //package src;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.PlainDocument;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -15,7 +16,7 @@ public class Client {
 	static Socket m_socket = null;
 	static PrintWriter m_out = null;
 	static BufferedReader m_in = null;
-	static JTextArea m_display = new JTextArea(3,3);
+	static JTextArea m_display = new JTextArea(5,10);
     static JButton m_connectButton = new JButton("Connect");
     static JButton m_disconnectButton = new JButton("Disconnect");
     static JButton m_postButton = new JButton("POST");
@@ -40,13 +41,13 @@ public class Client {
     }
     
 
-    public static class ConnectionView extends JPanel {
+    public static class ConnectionView extends JPanel {   	
         final private String IP_FORMAT = "###.###.###.###";
         final private String PORT_FORMAT = "######";
         private JLabel m_ipLabel = new JLabel("IP: ");
         private JLabel m_portLabel = new JLabel("PORT: ");
         private JTextField m_ipText = new JTextField(IP_FORMAT.length());
-        private JTextField m_portText = new JTextField(PORT_FORMAT.length());
+        private JTextField m_portText = new JTextField(5);
 
         public ConnectionView(){
             this.layoutView();
@@ -111,7 +112,7 @@ public class Client {
     }
 
     public static class RequestView extends JPanel {
-        private JTextArea m_inputText = new JTextArea(3,10);
+        private JTextField m_inputText = new JTextField(1);
         private JLabel m_inputLabel = new JLabel("Input: ");
 
         public RequestView() {
