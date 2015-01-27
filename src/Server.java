@@ -74,6 +74,9 @@ public final class Server {
         private void processRequest() throws Exception{
             InputStream inputStream = m_socket.getInputStream();
             DataOutputStream outputStream = new DataOutputStream(m_socket.getOutputStream());
+            outputStream.writeBytes("OK: Connected"+CRLF);
+
+
             // Set up input stream filters.
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
