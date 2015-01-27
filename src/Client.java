@@ -143,11 +143,11 @@ public class Client {
           	  public void actionPerformed(ActionEvent evt) {
                   m_out.println("GET " + m_inputText.getText());
                   try {
-                	  String delims = "||";
+                	  String delims = "&";
                 	  String single_out = "";
                 	  String[] line_out = m_in.readLine().split(delims);
                 	  for (int i=0; i<line_out.length; i++) {
-                		  single_out = single_out + line_out[i].toString();
+                		  single_out = single_out + line_out[i].toString() + "\n";
                 	  }
                 	  m_display.replaceRange(single_out, 0, m_display.getText().length());
                   }catch (IOException e) {
