@@ -16,7 +16,7 @@ public final class Server {
 	}
 
     private enum ShapeType {
-        Triangle, Quadrilateral, Invalid
+        Triangle, Quadrilateral, Invalid, ExistingTriangle, ExistingQuadrilateral
     }
 
     private static final int MIN_PORT = 1;
@@ -204,12 +204,13 @@ public final class Server {
                 Triangle triangle = new Triangle(points);
                 if(triangle.isTriangle()){
                     int indexOfAlready = m_shapes.indexOf(triangle);
+                    shapeType = ShapeType.Triangle;
                     if(indexOfAlready>=0){
                         m_shapes.elementAt(indexOfAlready).incrementCount();
+                        shapeType = ShapeType.ExistingTriangle;
                     }else{
                         m_shapes.add(triangle);
                     }
-                    shapeType = ShapeType.Triangle;
                 }else{
                     throw new ProtocolException("404: Point/Line Segment Error in Triangle");
                 }
@@ -218,12 +219,14 @@ public final class Server {
                 Quadrilateral quad = new Quadrilateral(points);
                 if(quad.isQuadrilateral()){
                     int indexOfAlready = m_shapes.indexOf(quad);
+                    shapeType = ShapeType.Quadrilateral;
                     if(indexOfAlready>=0){
                         m_shapes.elementAt(indexOfAlready).incrementCount();
+                        shapeType = ShapeType.ExistingQuadrilateral;
                     }else{
                         m_shapes.add(quad);
                     }
-                    shapeType = ShapeType.Quadrilateral;
+
                 }else{
                     throw new ProtocolException("404: Point/Line Segment Error in Quadrilateral");
                 }
