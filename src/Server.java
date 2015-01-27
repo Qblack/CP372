@@ -276,8 +276,8 @@ public final class Server {
 
     //CLASSES
     private static abstract class Shape{
-        public Vector<Point> points;
-        public Vector<Line> vertices;
+        public Vector<Point> points = new Vector<>();
+        public Vector<Line> vertices = new Vector<>();
         public int count = 1;
 
         public void incrementCount() {
