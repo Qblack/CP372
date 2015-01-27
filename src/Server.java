@@ -74,7 +74,7 @@ public final class Server {
         private void processRequest() throws Exception{
             InputStream inputStream = m_socket.getInputStream();
             DataOutputStream outputStream = new DataOutputStream(m_socket.getOutputStream());
-            outputStream.writeBytes("OK: Connected"+CRLF);
+            outputStream.writeBytes("OK: Connected" + CRLF);
 
 
             // Set up input stream filters.
@@ -89,16 +89,20 @@ public final class Server {
 		            String method = tokens.nextToken();
 		            if (Objects.equals(method, "GET")){
 		                Vector<Shape> results = handleGet(tokens);
-		                int index =0;
-                        StringBuilder output = new StringBuilder();
-                        for (Shape result : results) {
-                            output.append(result.toString());
-                            if(index!=results.size()-1){
-                                output.append("&");
+                        if(results.size()>0){
+                            int index =0;
+                            StringBuilder output = new StringBuilder();
+                            for (Shape result : results) {
+                                output.append(result.toString());
+                                if(index!=results.size()-1){
+                                    output.append("&");
+                                }
+                                index+=1;
                             }
-                            index+=1;
-		                }
-                        outputStream.writeBytes(output.toString());
+                            outputStream.writeBytes(output.toString());
+                        }else{
+                            outputStream.writeBytes("OK: Query Has No Results");
+                        }
 		                outputStream.writeBytes(CRLF);
 		            }else if (Objects.equals(method, "POST")){
 		                ShapeType shapeType = handlePost(tokens);
