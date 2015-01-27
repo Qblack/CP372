@@ -87,15 +87,15 @@ public final class Server {
 		            if (Objects.equals(method, "GET")){
 		                Vector<Shape> results = handleGet(tokens);
 		                int index =0;
+                        StringBuilder output = new StringBuilder();
                         for (Shape result : results) {
-                            StringBuilder output = new StringBuilder();
                             output.append(result.toString());
                             if(index!=results.size()-1){
-                                output.append("||");
+                                output.append("&");
                             }
-                            outputStream.writeBytes(output.toString());
                             index+=1;
 		                }
+                        outputStream.writeBytes(output.toString());
 		                outputStream.writeBytes(CRLF);
 		            }else if (Objects.equals(method, "POST")){
 		                ShapeType shapeType = handlePost(tokens);
