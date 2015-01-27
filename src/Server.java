@@ -349,6 +349,11 @@ public final class Server {
                 Line right = new Line(b, c);
                 Line top = new Line(c, d);
                 Line left = new Line(d, a);
+                super.vertices.add(bottom);
+                super.vertices.add(right);
+                super.vertices.add(top);
+                super.vertices.add(left);
+
                 int minDiagonal = a.distanceSquared(d) + a.distanceSquared(b);
 
                 if (a.distanceSquared(c) < minDiagonal) {
