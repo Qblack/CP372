@@ -69,9 +69,12 @@ public class Client {
 	    		int portNum = Integer.parseInt(m_portText.getText());
 	    		
 	    		try {
-	    				m_socket = new Socket(ipAddr, portNum);
-	    				m_out = new PrintWriter (m_socket.getOutputStream(), true);
-	    				m_in = new BufferedReader(new InputStreamReader(m_socket.getInputStream()));
+    				m_socket = new Socket(ipAddr, portNum);
+    				m_out = new PrintWriter (m_socket.getOutputStream(), true);
+    				m_in = new BufferedReader(new InputStreamReader(m_socket.getInputStream()));
+
+                	String single_out = m_in.readLine();
+                	m_display.replaceRange(single_out, 0, m_display.getText().length());
 	    		}
 	    		
 	    		catch (IndexOutOfBoundsException e) {
@@ -129,10 +132,8 @@ public class Client {
                 m_out.println("POST " + m_inputText.getText());
 
                 try {
-                	String line_out = m_in.readLine();
-		                if ( line_out!= null){
-		                	m_display.replaceRange(line_out, 0, m_display.getText().length());
-		                }
+                	String single_out = m_in.readLine();
+                	m_display.replaceRange(single_out, 0, m_display.getText().length());
 					}catch (IOException e) {
 						System.out.println(e);
 					}
