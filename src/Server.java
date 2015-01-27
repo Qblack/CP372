@@ -142,9 +142,15 @@ public final class Server {
                     } while (tokens.hasMoreTokens());
                     break;
                 case "Q":
+                    Stream<Quadrilateral> quadrilateralStream = m_shapes.stream()
+                            .filter(shape-> shape instanceof Quadrilateral)
+                            .map(q -> (Quadrilateral)q);
                     do {
                         request = tokens.nextToken();
-                        handleQuadrilateralGets(request, resultShapes);
+                        resultShapes = handleQuadrilateralGets(request, quadrilateralStream);
+                        quadrilateralStream = resultShapes.stream()
+                                .filter(shape-> shape instanceof Quadrilateral)
+                                .map(q -> (Quadrilateral)q);
                     } while (tokens.hasMoreTokens());
                     break;
                 default:
@@ -153,38 +159,29 @@ public final class Server {
             return resultShapes;
         }
 
-        private void handleQuadrilateralGets(String request, Vector<Shape> resultShapes) throws ProtocolException {
-            Stream<Quadrilateral> quadrilateralStream;
-            if(resultShapes.size()==0){
-               quadrilateralStream = m_shapes.stream()
-                        .filter(shape -> shape instanceof Quadrilateral)
-                        .map(q -> (Quadrilateral) q);
-            }else{
-                quadrilateralStream = resultShapes.stream()
-                        .filter(shape -> shape instanceof Quadrilateral)
-                        .map(q -> (Quadrilateral) q);
-            }
-
+        private Vector<Shape> handleQuadrilateralGets(String request,Stream<Quadrilateral> quadrilateralStream) throws ProtocolException {
+            Vector<Shape> results = new Vector<>();
             if(request.toLowerCase().equals("square")){
-                quadrilateralStream.filter(Quadrilateral::isSquare).forEach(resultShapes::add);
+                quadrilateralStream.filter(Quadrilateral::isSquare).forEach(results::add);
             }else if(request.toLowerCase().equals("rectangle")) {
-                quadrilateralStream.filter(Quadrilateral::isRectangle).forEach(resultShapes::add);
+                quadrilateralStream.filter(Quadrilateral::isRectangle).forEach(results::add);
             }else if(request.toLowerCase().equals("rhombus")) {
-                quadrilateralStream.filter(Quadrilateral::isRhombus).forEach(resultShapes::add);
+                quadrilateralStream.filter(Quadrilateral::isRhombus).forEach(results::add);
             }else if(request.toLowerCase().equals("parallelogram")) {
-                quadrilateralStream.filter(Quadrilateral::isParallelogram).forEach(resultShapes::add);
+                quadrilateralStream.filter(Quadrilateral::isParallelogram).forEach(results::add);
             }else if(request.toLowerCase().equals("convex")) {
-                quadrilateralStream.filter(Quadrilateral::isConvex).forEach(resultShapes::add);
+                quadrilateralStream.filter(Quadrilateral::isConvex).forEach(results::add);
             }else if(request.toLowerCase().equals("concave")) {
-                quadrilateralStream.filter(q-> !q.isConvex()).forEach(resultShapes::add);
+                quadrilateralStream.filter(q-> !q.isConvex()).forEach(results::add);
             }else if(request.toLowerCase().equals("trapezoid")) {
-                quadrilateralStream.filter(Quadrilateral::isTrapezoid).forEach(resultShapes::add);
+                quadrilateralStream.filter(Quadrilateral::isTrapezoid).forEach(results::add);
             }else if(request.matches("^\\d+$")){
                 int numberOf = Integer.parseInt(request);
-                quadrilateralStream.filter(t -> t.getCount() >= numberOf).forEach(resultShapes::add);
+                quadrilateralStream.filter(t -> t.getCount() >= numberOf).forEach(results::add);
             }else{
                 throw new ProtocolException("402: Invalid Quadrilateral");
             }
+            return results;
         }
 
         private Vector<Shape> handleTriangleGets(String request, Stream<Triangle> triangleStream) throws ProtocolException {
