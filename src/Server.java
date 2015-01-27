@@ -125,14 +125,21 @@ public final class Server {
         }
 
         private Vector<Shape> handleGet(StringTokenizer tokens) throws ProtocolException {
-            String shapeType = tokens.nextToken();
+            String shapeTypeCharacter = tokens.nextToken();
             Vector<Shape> resultShapes = new Vector<>();
-            switch (shapeType) {
+            String request;
+            switch (shapeTypeCharacter) {
                 case "T":
-					handleTriangleGets(tokens,resultShapes);
+                    do {
+                        request = tokens.nextToken();
+                        handleTriangleGets(request, resultShapes);
+                    } while (tokens.hasMoreTokens());
                     break;
                 case "Q":
-                    handleQuadrilateralGets(tokens, resultShapes);
+                    do {
+                        request = tokens.nextToken();
+                        handleQuadrilateralGets(request, resultShapes);
+                    } while (tokens.hasMoreTokens());
                     break;
                 default:
                     throw new ProtocolException("401: Invalid Shape Query");
@@ -140,9 +147,7 @@ public final class Server {
             return resultShapes;
         }
 
-        private void handleQuadrilateralGets(StringTokenizer tokens, Vector<Shape> resultShapes) throws ProtocolException {
-            String request = tokens.nextToken();
-
+        private void handleQuadrilateralGets(String request, Vector<Shape> resultShapes) throws ProtocolException {
             Stream<Quadrilateral> quadrilateralStream = m_shapes.stream()
                     .filter(shape -> shape instanceof Quadrilateral)
                     .map(q -> (Quadrilateral) q);
@@ -169,9 +174,7 @@ public final class Server {
             }
         }
 
-        private void handleTriangleGets(StringTokenizer tokens, Vector<Shape> resultShapes) throws ProtocolException {
-            String request = tokens.nextToken();
-
+        private void handleTriangleGets(String request, Vector<Shape> resultShapes) throws ProtocolException {
             Stream<Triangle> triangleStream = m_shapes.stream()
                     .filter(shape -> shape instanceof Triangle)
                     .map(t -> (Triangle) t);
@@ -201,35 +204,47 @@ public final class Server {
 
             Vector<Point> points = constructPointVector(tokens);
             if (points.size()==3){
-                Triangle triangle = new Triangle(points);
-                if(triangle.isTriangle()){
-                    int indexOfAlready = m_shapes.indexOf(triangle);
-                    shapeType = ShapeType.Triangle;
-                    if(indexOfAlready>=0){
-                        m_shapes.elementAt(indexOfAlready).incrementCount();
-                        shapeType = ShapeType.ExistingTriangle;
-                    }else{
-                        m_shapes.add(triangle);
-                    }
-                }else{
-                    throw new ProtocolException("404: Point/Line Segment Error in Triangle");
-                }
+                shapeType = postTriangle(points);
             }else if(points.size()==4){
-                //TODO Check for reflexive
-                Quadrilateral quad = new Quadrilateral(points);
-                if(quad.isQuadrilateral()){
-                    int indexOfAlready = m_shapes.indexOf(quad);
-                    shapeType = ShapeType.Quadrilateral;
-                    if(indexOfAlready>=0){
-                        m_shapes.elementAt(indexOfAlready).incrementCount();
-                        shapeType = ShapeType.ExistingQuadrilateral;
-                    }else{
-                        m_shapes.add(quad);
-                    }
+                shapeType = postQuadrilateral(points);
 
+            }
+            return shapeType;
+        }
+
+        private ShapeType postQuadrilateral(Vector<Point> points) throws ProtocolException {
+            ShapeType shapeType;//TODO Check for reflexive
+            Quadrilateral quad = new Quadrilateral(points);
+            if(quad.isQuadrilateral()){
+                int indexOfAlready = m_shapes.indexOf(quad);
+                shapeType = ShapeType.Quadrilateral;
+                if(indexOfAlready>=0){
+                    m_shapes.elementAt(indexOfAlready).incrementCount();
+                    shapeType = ShapeType.ExistingQuadrilateral;
                 }else{
-                    throw new ProtocolException("404: Point/Line Segment Error in Quadrilateral");
+                    m_shapes.add(quad);
                 }
+
+            }else{
+                throw new ProtocolException("404: Point/Line Segment Error in Quadrilateral");
+            }
+            return shapeType;
+        }
+
+        private ShapeType postTriangle(Vector<Point> points) throws ProtocolException {
+            ShapeType shapeType;
+            Triangle triangle = new Triangle(points);
+            if(triangle.isTriangle()){
+                int indexOfAlready = m_shapes.indexOf(triangle);
+                shapeType = ShapeType.Triangle;
+                if(indexOfAlready>=0){
+                    m_shapes.elementAt(indexOfAlready).incrementCount();
+                    shapeType = ShapeType.ExistingTriangle;
+                }else{
+                    m_shapes.add(triangle);
+                }
+            }else{
+                throw new ProtocolException("404: Point/Line Segment Error in Triangle");
             }
             return shapeType;
         }
