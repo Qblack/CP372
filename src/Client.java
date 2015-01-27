@@ -65,6 +65,7 @@ public class Client {
         
 	        m_connectButton.addActionListener(new ActionListener() {
 	    	  public void actionPerformed(ActionEvent evt) {
+	    		  boolean sockConnected = false;
 	    	    // do this on Connect press
 	    		String ipAddr = m_ipText.getText();
 	    		int portNum = Integer.parseInt(m_portText.getText());
@@ -73,6 +74,7 @@ public class Client {
     				m_socket = new Socket(ipAddr, portNum);
     				m_out = new PrintWriter (m_socket.getOutputStream(), true);
     				m_in = new BufferedReader(new InputStreamReader(m_socket.getInputStream()));
+    				sockConnected = true;
 
                 	String single_out = m_in.readLine();
                 	m_display.replaceRange(single_out, 0, m_display.getText().length());
@@ -81,13 +83,16 @@ public class Client {
 	    		catch (IndexOutOfBoundsException e) {
 	    		    System.err.println("IndexOutOfBoundsException: " + e.getMessage());
 	    		} catch (IOException e) {
-	    		    System.err.println("Caught IOException: " + e.getMessage());
+	    		    //System.err.println("Caught IOException: " + e.getMessage());
+	    			m_display.replaceRange("500: Could Not Connect To Server", 0, m_display.getText().length());
 	    		}
 	    		//on successful connect, disable connect button and show disconnect as well as POST/GET
-	    		m_connectButton.setEnabled(false);
-	    		m_disconnectButton.setEnabled(true);
-	    		m_postButton.setEnabled(true);
-	    		m_getButton.setEnabled(true);
+	    		if (sockConnected){
+		    		m_connectButton.setEnabled(false);
+		    		m_disconnectButton.setEnabled(true);
+		    		m_postButton.setEnabled(true);
+		    		m_getButton.setEnabled(true);
+	    		}
  	    	  }
 	    	  
 	    	});
