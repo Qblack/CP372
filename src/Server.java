@@ -220,7 +220,6 @@ public final class Server {
         }
 
 
-
         private Vector<Shape> handleTriangleGets(StringTokenizer tokens, Stream<Triangle> triangleStream) throws ProtocolException {
             Vector<Shape> results = new Vector<>();
             String request = tokens.nextToken();
@@ -375,10 +374,71 @@ public final class Server {
             }
         }
 
-        public double area = 0;
-        public abstract double findArea();
+        private double area = 0;
+
+        public double getArea() {
+            return this.area;
+        }
+
+        public void setArea(){
+            this.area = shoelace();
+        }
+
+        private double shoelace(){
+            int n = this.points.size();
+            int i = 0;
+            double area= 0;
+            while(i<n-1){
+                area+= this.points.get(i).getX() * this.points.get(i+1).getY();
+                area-= this.points.get(i+1).getX() * this.points.get(i).getY();
+                i++;
+            }
+            area += this.points.get(n-1).getX()*this.points.get(1).getY();
+            area -= this.points.get(1).getX()*this.points.get(n-1).getY();
+            area /=2;
+            return Math.abs(area);
+        }
+
 
         public abstract boolean equals(Object other);
+
+        /**
+         * Orders point counter clockwise, a b c d
+         */
+        protected void orderPoints() {
+            int bottomLeftIndex = getBottomLeft();
+            Point pointA = this.points.remove(bottomLeftIndex);
+            ArrayList<Line> vertices = new ArrayList<>();
+            for (Point point : this.points) {
+                vertices.add(new Line(pointA, point));
+            }
+            this.points.removeAllElements();
+            vertices.sort(new LineSlopeComparator());
+
+            this.points.add(pointA);
+            for (Line vertice : vertices) {
+                this.points.add(vertice.pair[1]);
+            }
+        }
+
+        private int getBottomLeft() {
+            Point bottomLeft = this.points.elementAt(0);
+            int bottomLeftIndex = 0;
+            for (int position = 1; position < this.points.size(); position++) {
+                Point point = this.points.elementAt(position);
+                if (point.getX() == bottomLeft.getX()) {
+                    if (point.getY() < bottomLeft.getY()) {
+                        bottomLeft = point;
+                        bottomLeftIndex = position;
+                    }
+                } else if (point.getX() < bottomLeft.getX()) {
+                    bottomLeft = point;
+                    bottomLeftIndex = position;
+                }
+            }
+            return bottomLeftIndex;
+        }
+
         public abstract boolean hasLineSegment();
         public abstract boolean hasPointOverlap();
 
@@ -431,6 +491,7 @@ public final class Server {
                 super.vertices.add(top);
                 super.vertices.add(left);
                 super.setPerimiter();
+                super.setArea();
 
                 int minDiagonal = a.distanceSquared(d) + a.distanceSquared(b);
 
@@ -456,43 +517,6 @@ public final class Server {
                     this.m_isTrapezoid = true;
                 }
             }
-        }
-
-        /**
-         * Orders point counter clockwise, a b c d
-         */
-        private void orderPoints() {
-            int bottomLeftIndex = getBottomLeft();
-            Point pointA = super.points.remove(bottomLeftIndex);
-            ArrayList<Line> vertices = new ArrayList<>();
-            for (Point point : super.points) {
-                vertices.add(new Line(pointA, point));
-            }
-            super.points.removeAllElements();
-            vertices.sort(new LineSlopeComparator());
-
-            points.add(pointA);
-            for (Line vertice : vertices) {
-                points.add(vertice.pair[1]);
-            }
-        }
-
-        private int getBottomLeft() {
-            Point bottomLeft = super.points.elementAt(0);
-            int bottomLeftIndex = 0;
-            for (int position = 1; position < super.points.size(); position++) {
-                Point point = super.points.elementAt(position);
-                if (point.getX() == bottomLeft.getX()) {
-                    if (point.getY() < bottomLeft.getY()) {
-                        bottomLeft = point;
-                        bottomLeftIndex = position;
-                    }
-                } else if (point.getX() < bottomLeft.getX()) {
-                    bottomLeft = point;
-                    bottomLeftIndex = position;
-                }
-            }
-            return bottomLeftIndex;
         }
 
         @Override
@@ -523,11 +547,6 @@ public final class Server {
                     super.points.get(1) == super.points.get(3)) {
                 return true;
             } else return super.points.get(2) == super.points.get(3);
-        }
-
-        @Override
-        public double findArea() {
-            return 0;
         }
 
         @Override
@@ -591,27 +610,24 @@ public final class Server {
 
             m_isTriangle = !(this.hasLineSegment() || this.hasPointOverlap());
             if(m_isTriangle){
+                super.orderPoints();
                 Point first = super.points.get(0);
                 Point second =super.points.get(1);
                 Point third = super.points.get(2);
-
-                super.vertices.add(new Line(first,second));
-                super.vertices.add(new Line(second,third));
-                super.vertices.add(new Line(third,first));
                 super.setPerimiter();
+                super.setArea();
 
                 int a2 = first.distanceSquared(second);
                 int b2 = first.distanceSquared(third);
                 int c2 = second.distanceSquared(third);
-
-                ArrayList<Integer> distances = new ArrayList<>();
-                distances.add(a2);
-                distances.add(b2);
-                distances.add(c2);
-                Collections.sort(distances);
-                c2 = distances.remove(2);
-                b2 = distances.remove(1);
-                a2 = distances.remove(0);
+                ArrayList<Integer> side_lengths = new ArrayList<>();
+                side_lengths.add(a2);
+                side_lengths.add(b2);
+                side_lengths.add(c2);
+                Collections.sort(side_lengths);
+                c2 = side_lengths.remove(2);
+                b2 = side_lengths.remove(1);
+                a2 = side_lengths.remove(0);
                 if(a2 == b2 && a2 == c2){
                     this.m_isEquilateral = true;
                     this.m_isIsosceles = true;
@@ -626,10 +642,6 @@ public final class Server {
             }
         }
 
-        @Override
-        public double findArea() {
-            return 0;
-        }
 
         @Override
         public boolean equals(Object obj){
