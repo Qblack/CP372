@@ -136,7 +136,7 @@ public final class Server {
                             .filter(shape -> shape instanceof Triangle)
                             .map(q -> (Triangle) q);
                     do {
-                        resultShapes = handleTriangleGets(tokens, triangleStream);
+                        resultShapes = getTriangleRequestResults(tokens, triangleStream);
                         triangleStream = resultShapes.stream()
                                 .filter(shape -> shape instanceof Triangle)
                                 .map(q -> (Triangle) q);
@@ -147,7 +147,7 @@ public final class Server {
                             .filter(shape-> shape instanceof Quadrilateral)
                             .map(q -> (Quadrilateral)q);
                     do {
-                        resultShapes = handleQuadrilateralGets(tokens, quadrilateralStream);
+                        resultShapes = getQuadrilateralRequestResults(tokens, quadrilateralStream);
                         quadrilateralStream = resultShapes.stream()
                                 .filter(shape -> shape instanceof Quadrilateral)
                                 .map(q -> (Quadrilateral) q);
@@ -159,7 +159,7 @@ public final class Server {
             return resultShapes;
         }
 
-        private Vector<Shape> handleQuadrilateralGets(StringTokenizer tokens,Stream<Quadrilateral> quadrilateralStream) throws ProtocolException {
+        private Vector<Shape> getQuadrilateralRequestResults(StringTokenizer tokens, Stream<Quadrilateral> quadrilateralStream) throws ProtocolException {
             Vector<Shape> results = new Vector<>();
             String request = tokens.nextToken();
             if(request.toLowerCase().equals("square")){
@@ -178,6 +178,8 @@ public final class Server {
                 quadrilateralStream.filter(Quadrilateral::isTrapezoid).forEach(results::add);
             }else if(request.toLowerCase().equals("perimeter")){
                 processQuadrilateralPerimeterRequest(tokens, quadrilateralStream, results);
+            }else if(request.toLowerCase().equals("area")){
+                processQuadrilateralAreaRequest(tokens, quadrilateralStream, results);
             }else if(request.matches("^\\d+$")){
                 int numberOf = Integer.parseInt(request);
                 quadrilateralStream.filter(q -> q.getCount() >= numberOf).forEach(results::add);
@@ -185,6 +187,38 @@ public final class Server {
                 throw new ProtocolException("402: Invalid Quadrilateral Request");
             }
             return results;
+        }
+
+        private void processQuadrilateralAreaRequest(StringTokenizer tokens, Stream<Quadrilateral> quadrilateralStream, Vector<Shape> results) throws ProtocolException {
+            if(tokens.countTokens()<2) {
+                throw new ProtocolException("401: Area requires operand and value");
+            }
+            String operand = tokens.nextToken();
+            if(!Arrays.asList(OPERANDS).contains(operand)){
+                throw new ProtocolException("405: Invalid Operand");
+            }
+            String value = tokens.nextToken();
+            if(!value.matches("^\\d+$")){
+                throw new ProtocolException("406: Invalid Area Value");
+            }
+            int area = Integer.parseInt(value);
+            switch (operand){
+                case "=":
+                    quadrilateralStream.filter(q->q.getArea()==area).forEach(results::add);
+                    break;
+                case ">":
+                    quadrilateralStream.filter(q->q.getArea()>area).forEach(results::add);
+                    break;
+                case "<":
+                    quadrilateralStream.filter(q->q.getArea()<area).forEach(results::add);
+                    break;
+                case "<=":
+                    quadrilateralStream.filter(q->q.getArea()<=area).forEach(results::add);
+                    break;
+                case ">=":
+                    quadrilateralStream.filter(q->q.getArea()>=area).forEach(results::add);
+                    break;
+            }
         }
 
         private void processQuadrilateralPerimeterRequest(StringTokenizer tokens, Stream<Quadrilateral> quadrilateralStream, Vector<Shape> results) throws ProtocolException {
@@ -220,7 +254,7 @@ public final class Server {
         }
 
 
-        private Vector<Shape> handleTriangleGets(StringTokenizer tokens, Stream<Triangle> triangleStream) throws ProtocolException {
+        private Vector<Shape> getTriangleRequestResults(StringTokenizer tokens, Stream<Triangle> triangleStream) throws ProtocolException {
             Vector<Shape> results = new Vector<>();
             String request = tokens.nextToken();
             if(request.toLowerCase().equals("right")){
@@ -233,6 +267,8 @@ public final class Server {
                 triangleStream.filter(Triangle::isScalene).forEach(results::add);
             }else if (request.toLowerCase().equals("perimeter")){
                 processTrianglePerimeterRequest(tokens,triangleStream,results);
+            }else if (request.toLowerCase().equals("area")){
+                processTriangleAreaRequest(tokens, triangleStream, results);
             }else if(request.matches("^\\d+$")){
                 int numberOf = Integer.parseInt(request);
                 triangleStream.filter(t->t.getCount()>=numberOf).forEach(results::add);
@@ -240,6 +276,38 @@ public final class Server {
                 throw new ProtocolException("402: Invalid Triangle");
             }
             return  results;
+        }
+
+        private void processTriangleAreaRequest(StringTokenizer tokens, Stream<Triangle> triangleStream, Vector<Shape> results) throws ProtocolException {
+            if(tokens.countTokens()<2) {
+                throw new ProtocolException("401: Area requires operand and value");
+            }
+            String operand = tokens.nextToken();
+            if(!Arrays.asList(OPERANDS).contains(operand)){
+                throw new ProtocolException("405: Invalid Operand");
+            }
+            String value = tokens.nextToken();
+            if(!value.matches("^\\d+$")){
+                throw new ProtocolException("406: Invalid Area Value");
+            }
+            int area = Integer.parseInt(value);
+            switch (operand){
+                case "=":
+                    triangleStream.filter(t -> t.getArea() == area).forEach(results::add);
+                    break;
+                case ">":
+                    triangleStream.filter(t -> t.getArea() > area).forEach(results::add);
+                    break;
+                case "<":
+                    triangleStream.filter(t -> t.getArea() < area).forEach(results::add);
+                    break;
+                case "<=":
+                    triangleStream.filter(t -> t.getArea() <= area).forEach(results::add);
+                    break;
+                case ">=":
+                    triangleStream.filter(t -> t.getArea() >= area).forEach(results::add);
+                    break;
+            }
         }
 
         private void processTrianglePerimeterRequest(StringTokenizer tokens, Stream<Triangle> triangleStream, Vector<Shape> results) throws ProtocolException {
@@ -257,19 +325,19 @@ public final class Server {
             int perimeter = Integer.parseInt(value);
             switch (operand){
                 case "=":
-                    triangleStream.filter(q -> q.getPerimeter() == perimeter).forEach(results::add);
+                    triangleStream.filter(t -> t.getPerimeter() == perimeter).forEach(results::add);
                     break;
                 case ">":
-                    triangleStream.filter(q -> q.getPerimeter() > perimeter).forEach(results::add);
+                    triangleStream.filter(t -> t.getPerimeter() > perimeter).forEach(results::add);
                     break;
                 case "<":
-                    triangleStream.filter(q -> q.getPerimeter() < perimeter).forEach(results::add);
+                    triangleStream.filter(t -> t.getPerimeter() < perimeter).forEach(results::add);
                     break;
                 case "<=":
-                    triangleStream.filter(q -> q.getPerimeter() <= perimeter).forEach(results::add);
+                    triangleStream.filter(t -> t.getPerimeter() <= perimeter).forEach(results::add);
                     break;
                 case ">=":
-                    triangleStream.filter(q -> q.getPerimeter() >= perimeter).forEach(results::add);
+                    triangleStream.filter(t -> t.getPerimeter() >= perimeter).forEach(results::add);
                     break;
             }
         }
@@ -393,8 +461,8 @@ public final class Server {
                 area-= this.points.get(i+1).getX() * this.points.get(i).getY();
                 i++;
             }
-            area += this.points.get(n-1).getX()*this.points.get(1).getY();
-            area -= this.points.get(1).getX()*this.points.get(n-1).getY();
+            area += this.points.get(n-1).getX()*this.points.get(0).getY();
+            area -= this.points.get(0).getX()*this.points.get(n-1).getY();
             area /=2;
             return Math.abs(area);
         }
