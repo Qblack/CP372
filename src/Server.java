@@ -256,7 +256,7 @@ public final class Server {
                 throw new ProtocolException("406: Please specify point or edges");
             }
             String query = tokens.nextToken();
-            List<Quadrilateral> quads = quadrilateralStream.collect(Collectors.toList());;
+            List<Quadrilateral> quads = quadrilateralStream.collect(Collectors.toList());
             int index = 1;
             int toIndex = quads.size();
             switch (query) {
@@ -531,7 +531,7 @@ public final class Server {
         }
 
         private ShapeType postQuadrilateral(Vector<Point> points) throws ProtocolException {
-            ShapeType shapeType;//TODO Check for reflexive
+            ShapeType shapeType;
             Quadrilateral quad = new Quadrilateral(points);
             if(quad.isQuadrilateral()){
                 int indexOfAlready = m_shapes.indexOf(quad);
@@ -607,7 +607,7 @@ public final class Server {
             return perimeter;
         }
 
-        public void setPerimiter(){
+        public void setPerimeter(){
             for (Line edge : edges) {
                 perimeter += Math.sqrt(edge.lengthSquared);
             }
@@ -751,7 +751,7 @@ public final class Server {
                 super.edges.add(right);
                 super.edges.add(top);
                 super.edges.add(left);
-                super.setPerimiter();
+                super.setPerimeter();
                 super.setArea();
 
                 int minDiagonal = a.distanceSquared(d) + a.distanceSquared(b);
@@ -875,7 +875,11 @@ public final class Server {
                 Point first = super.points.get(0);
                 Point second =super.points.get(1);
                 Point third = super.points.get(2);
-                super.setPerimiter();
+                super.edges.add(new Line(first,second));
+                super.edges.add(new Line(second,third));
+                super.edges.add(new Line(third,first));
+
+                super.setPerimeter();
                 super.setArea();
 
                 int a2 = first.distanceSquared(second);
