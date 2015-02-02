@@ -60,8 +60,9 @@ public final class Server {
     //Handle Requests
     public static class ShapeRequest implements Runnable {
         String[] OPERANDS = new String[]{"<",">","=","<=",">="};
-
         Socket m_socket;
+        Vector<SharePointResponse> m_sharedShapesByPoint = new Vector<>();
+
 
         public ShapeRequest(Socket sock) throws Exception{
             m_socket = sock;
@@ -95,9 +96,18 @@ public final class Server {
 		            String method = tokens.nextToken();
 		            if (Objects.equals(method, "GET")){
 		                Vector<Shape> results = handleGet(tokens);
-                        if(results.size()>0){
-                            int index =0;
-                            StringBuilder output = new StringBuilder();
+                        int index =0;
+                        StringBuilder output = new StringBuilder();
+                        if(m_sharedShapesByPoint.size()>0){
+                            for (SharePointResponse result : m_sharedShapesByPoint) {
+                                output.append(result.toString());
+                                if(index!=results.size()-1){
+                                    output.append("&");
+                                }
+                                index+=1;
+                            }
+                            outputStream.writeBytes(output.toString());
+                        }else if(results.size()>0){
                             for (Shape result : results) {
                                 output.append(result.toString());
                                 if(index!=results.size()-1){
@@ -133,14 +143,14 @@ public final class Server {
         private Vector<Shape> handleGet(StringTokenizer tokens) throws ProtocolException {
             String shapeTypeCharacter = tokens.nextToken();
             Vector<Shape> resultShapes = new Vector<>();
-
             switch (shapeTypeCharacter) {
                 case "T":
                     Stream<Triangle> triangleStream = m_shapes.stream()
                             .filter(shape -> shape instanceof Triangle)
                             .map(q -> (Triangle) q);
                     do {
-                        resultShapes = getTriangleRequestResults(tokens, triangleStream);
+                        String query = tokens.nextToken();
+                        resultShapes = getTriangleRequestResults(query, tokens, triangleStream);
                         triangleStream = resultShapes.stream()
                                 .filter(shape -> shape instanceof Triangle)
                                 .map(q -> (Triangle) q);
@@ -151,7 +161,8 @@ public final class Server {
                             .filter(shape-> shape instanceof Quadrilateral)
                             .map(q -> (Quadrilateral)q);
                     do {
-                        resultShapes = getQuadrilateralRequestResults(tokens, quadrilateralStream);
+                        String query = tokens.nextToken();
+                        resultShapes = getQuadrilateralRequestResults(query, tokens, quadrilateralStream);
                         quadrilateralStream = resultShapes.stream()
                                 .filter(shape -> shape instanceof Quadrilateral)
                                 .map(q -> (Quadrilateral) q);
@@ -163,9 +174,8 @@ public final class Server {
             return resultShapes;
         }
 
-        private Vector<Shape> getQuadrilateralRequestResults(StringTokenizer tokens, Stream<Quadrilateral> quadrilateralStream) throws ProtocolException {
+        private Vector<Shape> getQuadrilateralRequestResults(String request, StringTokenizer tokens, Stream<Quadrilateral> quadrilateralStream) throws ProtocolException {
             Vector<Shape> results = new Vector<>();
-            String request = tokens.nextToken();
             if(request.toLowerCase().equals("square")){
                 quadrilateralStream.filter(Quadrilateral::isSquare).forEach(results::add);
             }else if(request.toLowerCase().equals("rectangle")) {
@@ -184,6 +194,8 @@ public final class Server {
                 processQuadrilateralPerimeterRequest(tokens, quadrilateralStream, results);
             }else if(request.toLowerCase().equals("area")){
                 processQuadrilateralAreaRequest(tokens, quadrilateralStream, results);
+            }else if(request.toLowerCase().equals("share")){
+                processQuadrilateralShareRequest(tokens, quadrilateralStream);
             }else if(request.matches("^\\d+$")){
                 int numberOf = Integer.parseInt(request);
                 quadrilateralStream.filter(q -> q.getCount() >= numberOf).forEach(results::add);
@@ -191,6 +203,36 @@ public final class Server {
                 throw new ProtocolException("402: Invalid Quadrilateral Request");
             }
             return results;
+        }
+
+        private void processQuadrilateralShareRequest(StringTokenizer tokens, Stream<Quadrilateral> quadrilateralStream) throws ProtocolException {
+            if(tokens.countTokens()<1){
+                throw new ProtocolException("406: Please specify point or edges");
+            }
+            String query = tokens.nextToken();
+            switch (query) {
+                case "point":
+                    m_sharedShapesByPoint.removeAllElements();
+                    List<Quadrilateral> quads = quadrilateralStream.collect(Collectors.toList());
+                    int index = 1;
+                    int toIndex = quads.size();
+                    for (Quadrilateral quadrilateral : quads) {
+                        for (Quadrilateral other : quads.subList(index,toIndex)) {
+                            Vector<Point> sharedPoints = quadrilateral.sharePoints(other);
+                            if (sharedPoints.size() > 0) {
+                                SharePointResponse response = new SharePointResponse(quadrilateral, other, sharedPoints);
+                                m_sharedShapesByPoint.add(response);
+                            }
+                        }
+                        index++;
+                    }
+                    break;
+                case "edge":
+                    String x = "Incomplete";
+                    break;
+                default:
+                    throw new ProtocolException("406: Please specify point or edges");
+            }
         }
 
         private void processQuadrilateralAreaRequest(StringTokenizer tokens, Stream<Quadrilateral> quadrilateralStream, Vector<Shape> results) throws ProtocolException {
@@ -258,9 +300,8 @@ public final class Server {
         }
 
 
-        private Vector<Shape> getTriangleRequestResults(StringTokenizer tokens, Stream<Triangle> triangleStream) throws ProtocolException {
+        private Vector<Shape> getTriangleRequestResults(String request, StringTokenizer tokens, Stream<Triangle> triangleStream) throws ProtocolException {
             Vector<Shape> results = new Vector<>();
-            String request = tokens.nextToken();
             if(request.toLowerCase().equals("right")){
                 triangleStream.filter(Triangle::isRightAngled).forEach(results::add);
             }else if(request.toLowerCase().equals("isosceles")) {
@@ -273,13 +314,45 @@ public final class Server {
                 processTrianglePerimeterRequest(tokens,triangleStream,results);
             }else if (request.toLowerCase().equals("area")){
                 processTriangleAreaRequest(tokens, triangleStream, results);
+            }else if(request.toLowerCase().equals("share")){
+                processTriangleShareRequest(tokens, triangleStream);
             }else if(request.matches("^\\d+$")){
                 int numberOf = Integer.parseInt(request);
                 triangleStream.filter(t->t.getCount()>=numberOf).forEach(results::add);
             }else{
-                throw new ProtocolException("402: Invalid Triangle");
+                throw new ProtocolException("402: Invalid Triangle Request");
             }
             return  results;
+        }
+
+        private void processTriangleShareRequest(StringTokenizer tokens, Stream<Triangle> triangleStream) throws ProtocolException {
+            if(tokens.countTokens()<1){
+                throw new ProtocolException("406: Please specify point or edges");
+            }
+            String query = tokens.nextToken();
+            switch (query) {
+                case "point":
+                    m_sharedShapesByPoint.removeAllElements();
+                    List<Triangle> triangleList = triangleStream.collect(Collectors.toList());
+                    int index = 1;
+                    int toIndex = triangleList.size();
+                    for (Triangle triangle : triangleList) {
+                        for (Triangle other : triangleList.subList(index,toIndex)) {
+                            Vector<Point> sharedPoints = triangle.sharePoints(other);
+                            if (sharedPoints.size() > 0) {
+                                SharePointResponse response = new SharePointResponse(triangle, other, sharedPoints);
+                                m_sharedShapesByPoint.add(response);
+                            }
+                        }
+                        index++;
+                    }
+                    break;
+                case "edge":
+                    String x = "Incomplete";
+                    break;
+                default:
+                    throw new ProtocolException("406: Please specify point or edges");
+            }
         }
 
         private void processTriangleAreaRequest(StringTokenizer tokens, Stream<Triangle> triangleStream, Vector<Shape> results) throws ProtocolException {
@@ -514,6 +587,16 @@ public final class Server {
         public abstract boolean hasLineSegment();
         public abstract boolean hasPointOverlap();
 
+        public Vector<Point> sharePoints(Shape other){
+            Vector<Point> sharedPoints = new Vector<>();
+            for (Point point : this.points) {
+                sharedPoints.addAll(other.points.stream()
+                        .filter(point::equals).map(otherPoint -> point)
+                        .collect(Collectors.toList()));
+            }
+            return sharedPoints;
+        }
+
         public boolean crossProduct(Point a, Point b, Point c) {
             int crossProduct = (c.y - a.y) * (b.x - a.x) - (c.x - a.x) * (b.y - a.y);
             return crossProduct == 0;
@@ -578,14 +661,14 @@ public final class Server {
                         this.m_isTrapezoid = true;
                     }
                 } else if (bottom.lengthSquared == top.lengthSquared && left.lengthSquared == right.lengthSquared) {
-                    if (bottom.areParellel(top) && left.areParellel(right)) {
+                    if (bottom.areParallel(top) && left.areParallel(right)) {
                         this.m_isParallelogram = true;
                         if (bottom.slope == 0 && left.slope == Integer.MAX_VALUE) {
                             this.m_isRectangle = true;
                             this.m_isTrapezoid = true;
                         }
                     }
-                } else if (bottom.areParellel(top) || left.areParellel(right)) {
+                } else if (bottom.areParallel(top) || left.areParallel(right)) {
                     this.m_isTrapezoid = true;
                 }
             }
@@ -832,7 +915,7 @@ public final class Server {
             this.slope = point1.slopeBetweenPoints(point2);
         }
 
-        public boolean areParellel(Line other){
+        public boolean areParallel(Line other){
             Point p1 = this.pair[0];
             Point p2 = this.pair[1];
             Point p3 = other.pair[0];
@@ -859,5 +942,36 @@ public final class Server {
             return 1;
         }
     }
+
+    public static class SharePointResponse{
+        private Vector<Shape> m_sharingShapes = new Vector<>();
+        private Vector<Point> m_sharedPoints;
+
+        public SharePointResponse(Shape shape, Shape shape2, Vector<Point> sharedPoints){
+            m_sharedPoints = sharedPoints;
+            m_sharingShapes.add(shape);
+            m_sharingShapes.add(shape2);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder output = new StringBuilder();
+            for (Shape shape : m_sharingShapes) {
+                output.append(shape.toString());
+                output.append("-");
+            }
+            boolean first = true;
+            for (Point point : m_sharedPoints) {
+                if (!first) {
+                    output.append(",");
+                }
+                output.append(point.toString());
+                first = false;
+            }
+            return output.toString();
+        }
+
+    }
+
 }
 
