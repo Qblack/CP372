@@ -21,6 +21,9 @@ public class Client {
     static JButton m_disconnectButton = new JButton("Disconnect");
     static JButton m_postButton = new JButton("POST");
     static JButton m_getButton = new JButton("GET");
+	static JTextField m_ipText = new JTextField(15);
+    static JTextField m_portText = new JTextField(5);
+	static JTextField m_inputText = new JTextField(1);
 	
 	
     private static void createAndShowGUI() {
@@ -28,7 +31,7 @@ public class Client {
 
         JFrame frame = new JFrame("The Shaper");
         frame.setContentPane(view);
-        frame.setSize(500, 195);
+        frame.setSize(500, 210);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         //Display the window.
         frame.setVisible(true);
@@ -42,12 +45,9 @@ public class Client {
     
 
     public static class ConnectionView extends JPanel {   	
-        final private String IP_FORMAT = "###.###.###.###";
         final private String PORT_FORMAT = "######";
         private JLabel m_ipLabel = new JLabel("IP: ");
         private JLabel m_portLabel = new JLabel("PORT: ");
-        private JTextField m_ipText = new JTextField(IP_FORMAT.length());
-        private JTextField m_portText = new JTextField(5);
 
         public ConnectionView(){
             this.layoutView();
@@ -56,12 +56,13 @@ public class Client {
         private void layoutView() {
             this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             this.add(this.m_ipLabel);
-            this.add(this.m_ipText);
+            this.add(m_ipText);
             this.add(this.m_portLabel);
-            this.add(this.m_portText);
+            this.add(m_portText);
             this.add(m_connectButton);
             this.add(m_disconnectButton);
             m_disconnectButton.setEnabled(false);
+			m_connectButton.setBackground(Color.green);
         
 	        m_connectButton.addActionListener(new ActionListener() {
 	    	  public void actionPerformed(ActionEvent evt) {
@@ -89,9 +90,30 @@ public class Client {
 	    		//on successful connect, disable connect button and show disconnect as well as POST/GET
 	    		if (sockConnected){
 		    		m_connectButton.setEnabled(false);
+					m_connectButton.setBackground(null);
+					
 		    		m_disconnectButton.setEnabled(true);
+					m_disconnectButton.setBackground(Color.red);
+					m_disconnectButton.setFont(new java.awt.Font("Arial", Font.BOLD | Font.BOLD, 12));
+					
 		    		m_postButton.setEnabled(true);
+					m_postButton.setBackground(Color.blue);
+					m_postButton.setFont(new java.awt.Font("Arial", Font.BOLD | Font.BOLD, 12));
+					
 		    		m_getButton.setEnabled(true);
+					m_getButton.setBackground(Color.blue);
+					m_getButton.setFont(new java.awt.Font("Arial", Font.BOLD | Font.BOLD, 12));
+					
+					m_inputText.setEnabled(true);
+					m_inputText.setBackground(Color.yellow);
+					m_inputText.setForeground(Color.blue);
+					m_inputText.setFont(new java.awt.Font("Arial", Font.ITALIC | Font.BOLD, 12));
+					
+					m_ipText.setEnabled(false);
+					m_ipText.setBackground(null);
+					
+					m_portText.setEnabled(false);
+					m_portText.setBackground(null);
 	    		}
  	    	  }
 	    	  
@@ -108,16 +130,32 @@ public class Client {
 						}
 		    		//on successful disconnect, disable disconnect & POST/GET button and show connect
 		    		m_connectButton.setEnabled(true);
+					m_connectButton.setBackground(Color.green);
+					
 		    		m_disconnectButton.setEnabled(false);
+					m_disconnectButton.setBackground(null);
+					
 		    		m_postButton.setEnabled(false);
+					m_postButton.setBackground(null);
+					
 		    		m_getButton.setEnabled(false);
+					m_getButton.setBackground(null);
+					
+					m_inputText.setEnabled(false);
+					m_inputText.setBackground(null);
+					m_inputText.setForeground(null);
+					
+					m_portText.setEnabled(true);
+					m_portText.setBackground(Color.yellow);
+					
+					m_ipText.setEnabled(true);
+					m_ipText.setBackground(Color.yellow);
 		    	  }
 		    });
         }
     }
 
     public static class RequestView extends JPanel {
-        private JTextField m_inputText = new JTextField(1);
         private JLabel m_inputLabel = new JLabel("Input: ");
 
         public RequestView() {
@@ -132,7 +170,10 @@ public class Client {
             this.add(m_getButton);
             m_postButton.setEnabled(false);
             m_getButton.setEnabled(false);
-                       
+			m_inputText.setEnabled(false);
+			m_ipText.setBackground(Color.yellow);
+			m_portText.setBackground(Color.yellow);
+			
             m_postButton.addActionListener(new ActionListener() {
           	  public void actionPerformed(ActionEvent evt) {
                 m_out.println("POST " + m_inputText.getText());
