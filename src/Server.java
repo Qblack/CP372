@@ -876,8 +876,8 @@ public final class Server {
         }
 
         public double slopeBetweenPoints(Point other){
-            int rise = other.getY() - this.getY();
-            int run = other.getX() - this.getX();
+            double rise = other.getY() - this.getY();
+            double run = other.getX() - this.getX();
             double slope;
             if (run==0){
                 slope = Integer.MAX_VALUE;
