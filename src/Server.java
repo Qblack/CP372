@@ -209,6 +209,8 @@ public final class Server {
                 processQuadrilateralAreaRequest(tokens, quadrilateralStream, results);
             }else if(request.toLowerCase().equals("share")){
                 processQuadrilateralShareRequest(tokens, quadrilateralStream);
+            }else if(Arrays.asList(OPERANDS).contains(request)){
+                processQuadrilateralNRequest(tokens,request,quadrilateralStream,results);
             }else if(request.matches("^\\d+$")){
                 int numberOf = Integer.parseInt(request);
                 quadrilateralStream.filter(q -> q.getCount() >= numberOf).forEach(results::add);
@@ -216,6 +218,34 @@ public final class Server {
                 throw new ProtocolException("402: Invalid Quadrilateral Request");
             }
             return results;
+        }
+
+        private void processQuadrilateralNRequest(StringTokenizer tokens, String operand, Stream<Quadrilateral> quadrilateralStream, Vector<Shape> results) throws ProtocolException {
+            if(tokens.countTokens()<1) {
+                throw new ProtocolException("401: Operand requires value to compare");
+            }
+            String number = tokens.nextToken();
+            if(!number.matches("^\\d+$")){
+                throw new ProtocolException("406: Not a digit");
+            }
+            int numberOf = Integer.parseInt(number);
+            switch (operand){
+                case "=":
+                    quadrilateralStream.filter(q -> q.getCount() == numberOf).forEach(results::add);
+                    break;
+                case ">":
+                    quadrilateralStream.filter(q -> q.getCount() > numberOf).forEach(results::add);
+                    break;
+                case "<":
+                    quadrilateralStream.filter(q -> q.getCount() < numberOf).forEach(results::add);
+                    break;
+                case "<=":
+                    quadrilateralStream.filter(q -> q.getCount() <= numberOf).forEach(results::add);
+                    break;
+                case ">=":
+                    quadrilateralStream.filter(q -> q.getCount() >= numberOf).forEach(results::add);
+                    break;
+            }
         }
 
         private void processQuadrilateralShareRequest(StringTokenizer tokens, Stream<Quadrilateral> quadrilateralStream) throws ProtocolException {
@@ -322,7 +352,6 @@ public final class Server {
             }
         }
 
-
         private Vector<Shape> getTriangleRequestResults(String request, StringTokenizer tokens, Stream<Triangle> triangleStream) throws ProtocolException {
             Vector<Shape> results = new Vector<>();
             if(request.toLowerCase().equals("right")){
@@ -339,6 +368,8 @@ public final class Server {
                 processTriangleAreaRequest(tokens, triangleStream, results);
             }else if(request.toLowerCase().equals("share")){
                 processTriangleShareRequest(tokens, triangleStream);
+            }else if(Arrays.asList(OPERANDS).contains(request)){
+                processTriangleNRequest(tokens, request, triangleStream, results);
             }else if(request.matches("^\\d+$")){
                 int numberOf = Integer.parseInt(request);
                 triangleStream.filter(t->t.getCount()>=numberOf).forEach(results::add);
@@ -346,6 +377,34 @@ public final class Server {
                 throw new ProtocolException("402: Invalid Triangle Request");
             }
             return  results;
+        }
+
+        private void processTriangleNRequest(StringTokenizer tokens, String operand, Stream<Triangle> triangleStream, Vector<Shape> results) throws ProtocolException {
+            if(tokens.countTokens()<1) {
+                throw new ProtocolException("401: Operand requires value to compare");
+            }
+            String number = tokens.nextToken();
+            if(!number.matches("^\\d+$")){
+                throw new ProtocolException("406: Not a digit");
+            }
+            int numberOf = Integer.parseInt(number);
+            switch (operand){
+                case "=":
+                    triangleStream.filter(q -> q.getCount() == numberOf).forEach(results::add);
+                    break;
+                case ">":
+                    triangleStream.filter(q -> q.getCount() > numberOf).forEach(results::add);
+                    break;
+                case "<":
+                    triangleStream.filter(q -> q.getCount() < numberOf).forEach(results::add);
+                    break;
+                case "<=":
+                    triangleStream.filter(q -> q.getCount() <= numberOf).forEach(results::add);
+                    break;
+                case ">=":
+                    triangleStream.filter(q -> q.getCount() >= numberOf).forEach(results::add);
+                    break;
+            }
         }
 
         private void processTriangleShareRequest(StringTokenizer tokens, Stream<Triangle> triangleStream) throws ProtocolException {
