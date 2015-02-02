@@ -763,7 +763,7 @@ public final class Server {
 
                 int minDiagonal = a.distanceSquared(d) + a.distanceSquared(b);
 
-                if (a.distanceSquared(c) < minDiagonal) {
+                if (a.distanceSquared(c) < minDiagonal  && !(bottom.areParallel(top) || left.areParallel(right))) {
                     this.m_isConcave = true;
                 } else if (bottom.lengthSquared == right.lengthSquared && right.lengthSquared == top.lengthSquared && top.lengthSquared == left.lengthSquared) {
                     this.m_isRhombus = true;
@@ -844,7 +844,7 @@ public final class Server {
         }
 
         public boolean isConvex() {
-            return m_isConcave;
+            return !m_isConcave;
         }
 
         public boolean isParallelogram() {
