@@ -1,8 +1,6 @@
-//package src;
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.PlainDocument;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -62,7 +60,7 @@ public class Client {
             this.add(m_connectButton);
             this.add(m_disconnectButton);
             m_disconnectButton.setEnabled(false);
-			m_connectButton.setBackground(Color.green);
+			m_connectButton.setBackground(new Color(0xC2FF7F));
         
 	        m_connectButton.addActionListener(new ActionListener() {
 	    	  public void actionPerformed(ActionEvent evt) {
@@ -93,20 +91,20 @@ public class Client {
 					m_connectButton.setBackground(null);
 					
 		    		m_disconnectButton.setEnabled(true);
-					m_disconnectButton.setBackground(Color.red);
-					m_disconnectButton.setFont(new java.awt.Font("Arial", Font.BOLD | Font.BOLD, 12));
+					m_disconnectButton.setBackground(new Color(0xFF7F82));
+					m_disconnectButton.setFont(new java.awt.Font("Arial", Font.BOLD, 12));
 					
 		    		m_postButton.setEnabled(true);
-					m_postButton.setBackground(Color.blue);
-					m_postButton.setFont(new java.awt.Font("Arial", Font.BOLD | Font.BOLD, 12));
+					m_postButton.setBackground(new Color(0x7FFFFC));
+					m_postButton.setFont(new java.awt.Font("Arial", Font.BOLD, 12));
 					
 		    		m_getButton.setEnabled(true);
-					m_getButton.setBackground(Color.blue);
-					m_getButton.setFont(new java.awt.Font("Arial", Font.BOLD | Font.BOLD, 12));
+					m_getButton.setBackground(new Color(0x7FFFFC));
+					m_getButton.setFont(new java.awt.Font("Arial", Font.BOLD, 12));
 					
 					m_inputText.setEnabled(true);
-					m_inputText.setBackground(Color.yellow);
-					m_inputText.setForeground(Color.blue);
+					m_inputText.setBackground(new Color(0xBC7FFF));
+					m_inputText.setForeground(new Color(0xFFBC7F));
 					m_inputText.setFont(new java.awt.Font("Arial", Font.ITALIC | Font.BOLD, 12));
 					
 					m_ipText.setEnabled(false);
@@ -130,7 +128,7 @@ public class Client {
 						}
 		    		//on successful disconnect, disable disconnect & POST/GET button and show connect
 		    		m_connectButton.setEnabled(true);
-					m_connectButton.setBackground(Color.green);
+					m_connectButton.setBackground(new Color(0x7FFFFC));
 					
 		    		m_disconnectButton.setEnabled(false);
 					m_disconnectButton.setBackground(null);
@@ -146,10 +144,10 @@ public class Client {
 					m_inputText.setForeground(null);
 					
 					m_portText.setEnabled(true);
-					m_portText.setBackground(Color.yellow);
+					m_portText.setBackground(new Color(0xBC7FFF));
 					
 					m_ipText.setEnabled(true);
-					m_ipText.setBackground(Color.yellow);
+					m_ipText.setBackground(new Color(0xBC7FFF));
 		    	  }
 		    });
         }
@@ -171,9 +169,9 @@ public class Client {
             m_postButton.setEnabled(false);
             m_getButton.setEnabled(false);
 			m_inputText.setEnabled(false);
-			m_ipText.setBackground(Color.yellow);
-			m_portText.setBackground(Color.yellow);
-			
+			m_ipText.setBackground(new Color(0xBC7FFF));
+			m_portText.setBackground(new Color(0xBC7FFF));
+
             m_postButton.addActionListener(new ActionListener() {
           	  public void actionPerformed(ActionEvent evt) {
                 m_out.println("POST " + m_inputText.getText());
