@@ -32,7 +32,14 @@ public final class Server {
     //Main Server
     public static void main(String argv[]) throws Exception {
         // Get the port number from the command line.
-        int port = new Integer(argv[0]).intValue();
+        int port = 0;
+        if(argv.length>=1){
+            port = new Integer(argv[0]).intValue();
+        }else{
+            throw new Exception("Please provide portnumber");
+        }
+
+
 
         if (port< MIN_PORT || port > MAX_PORT){
             throw new Exception(PORT_ERROR);
@@ -897,8 +904,10 @@ public final class Server {
                     this.m_isEquilateral = true;
                     this.m_isIsosceles = true;
                 }else if (c2==(a2+b2)){
-                    this.m_isIsosceles = true;
                     this.m_isRightAngled = true;
+                    if(a2==b2 || a2==c2|| c2==b2){
+                        this.m_isIsosceles = true;
+                    }
                 }else if(a2==b2 || a2==c2|| c2==b2){
                     this.m_isIsosceles = true;
                 }else{
