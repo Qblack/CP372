@@ -1,14 +1,18 @@
 //package src;
+
 import java.io.* ;
 import java.io.InputStream;
 import java.lang.Exception;
 import java.net.* ;
 import java.util.* ;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class Server {
-	
-	//---ProtocolExceptions----------
+
+    public static final String DECIMAL_NUMBER_REGEX = "^((\\d+(\\.\\d*)?)|(\\.\\d+))$";
+
+    //---ProtocolExceptions----------
 	public static class ProtocolException extends Exception{
 		public ProtocolException (String msg){
 			super (msg);
@@ -198,7 +202,7 @@ public final class Server {
                 throw new ProtocolException("405: Invalid Operand");
             }
             String value = tokens.nextToken();
-            if(!value.matches("^\\d+$")){
+            if(!value.matches(DECIMAL_NUMBER_REGEX)){
                 throw new ProtocolException("406: Invalid Area Value");
             }
             int area = Integer.parseInt(value);
@@ -230,7 +234,7 @@ public final class Server {
                 throw new ProtocolException("405: Invalid Operand");
             }
             String value = tokens.nextToken();
-            if(!value.matches("^\\d+$")){
+            if(!value.matches(DECIMAL_NUMBER_REGEX)){
                 throw new ProtocolException("406: Invalid Perimeter Value");
             }
             int perimeter = Integer.parseInt(value);
@@ -287,7 +291,7 @@ public final class Server {
                 throw new ProtocolException("405: Invalid Operand");
             }
             String value = tokens.nextToken();
-            if(!value.matches("^\\d+$")){
+            if(!value.matches(DECIMAL_NUMBER_REGEX)){
                 throw new ProtocolException("406: Invalid Area Value");
             }
             int area = Integer.parseInt(value);
@@ -319,7 +323,7 @@ public final class Server {
                 throw new ProtocolException("405: Invalid Operand");
             }
             String value = tokens.nextToken();
-            if(!value.matches("^\\d+$")){
+            if(!value.matches(DECIMAL_NUMBER_REGEX)){
                 throw new ProtocolException("406: Invalid Perimeter Value");
             }
             int perimeter = Integer.parseInt(value);
