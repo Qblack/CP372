@@ -145,10 +145,13 @@ public final class Server {
 		                throw new ProtocolException("400: Bad Request");
 		            }
 		            
-			        }catch(ProtocolException err){
-		            	outputStream.writeBytes(err.getMessage());
-		                outputStream.writeBytes(CRLF);
-			        }
+                }catch(ProtocolException err){
+                    outputStream.writeBytes(err.getMessage());
+                    outputStream.writeBytes(CRLF);
+                }catch(Exception e) {
+                    outputStream.writeBytes("501: Something Went Boom");
+                    outputStream.writeBytes(CRLF);
+                }
             	requestLine = reader.readLine();
             }
         }
