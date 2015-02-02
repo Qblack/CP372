@@ -62,6 +62,7 @@ public final class Server {
         String[] OPERANDS = new String[]{"<",">","=","<=",">="};
         Socket m_socket;
         Vector<SharePointResponse> m_sharedShapesByPoint = new Vector<>();
+        Vector<ShareEdgedResponse> m_sharedShapesByEdges = new Vector<>();
 
 
         public ShapeRequest(Socket sock) throws Exception{
@@ -107,6 +108,18 @@ public final class Server {
                                 index+=1;
                             }
                             outputStream.writeBytes(output.toString());
+                            m_sharedShapesByPoint.removeAllElements();
+
+                        }else if(m_sharedShapesByEdges.size()>0) {
+                            for (ShareEdgedResponse result : m_sharedShapesByEdges) {
+                                output.append(result.toString());
+                                if(index!=results.size()-1){
+                                    output.append("&");
+                                }
+                                index+=1;
+                            }
+                            outputStream.writeBytes(output.toString());
+                            m_sharedShapesByEdges.removeAllElements();
                         }else if(results.size()>0){
                             for (Shape result : results) {
                                 output.append(result.toString());
@@ -210,12 +223,12 @@ public final class Server {
                 throw new ProtocolException("406: Please specify point or edges");
             }
             String query = tokens.nextToken();
+            List<Quadrilateral> quads = quadrilateralStream.collect(Collectors.toList());;
+            int index = 1;
+            int toIndex = quads.size();
             switch (query) {
                 case "point":
                     m_sharedShapesByPoint.removeAllElements();
-                    List<Quadrilateral> quads = quadrilateralStream.collect(Collectors.toList());
-                    int index = 1;
-                    int toIndex = quads.size();
                     for (Quadrilateral quadrilateral : quads) {
                         for (Quadrilateral other : quads.subList(index,toIndex)) {
                             Vector<Point> sharedPoints = quadrilateral.sharePoints(other);
@@ -228,7 +241,17 @@ public final class Server {
                     }
                     break;
                 case "edge":
-                    String x = "Incomplete";
+                    m_sharedShapesByPoint.removeAllElements();
+                    for (Quadrilateral quadrilateral : quads) {
+                        for (Quadrilateral other : quads.subList(index,toIndex)) {
+                            Vector<Line> sharedEdges = quadrilateral.shareEdges(other);
+                            if (sharedEdges.size() > 0) {
+                                ShareEdgedResponse response = new ShareEdgedResponse(quadrilateral, other, sharedEdges);
+                                m_sharedShapesByEdges.add(response);
+                            }
+                        }
+                        index++;
+                    }
                     break;
                 default:
                     throw new ProtocolException("406: Please specify point or edges");
@@ -330,12 +353,12 @@ public final class Server {
                 throw new ProtocolException("406: Please specify point or edges");
             }
             String query = tokens.nextToken();
+            m_sharedShapesByPoint.removeAllElements();
+            List<Triangle> triangleList = triangleStream.collect(Collectors.toList());
+            int index = 1;
+            int toIndex = triangleList.size();
             switch (query) {
                 case "point":
-                    m_sharedShapesByPoint.removeAllElements();
-                    List<Triangle> triangleList = triangleStream.collect(Collectors.toList());
-                    int index = 1;
-                    int toIndex = triangleList.size();
                     for (Triangle triangle : triangleList) {
                         for (Triangle other : triangleList.subList(index,toIndex)) {
                             Vector<Point> sharedPoints = triangle.sharePoints(other);
@@ -348,7 +371,16 @@ public final class Server {
                     }
                     break;
                 case "edge":
-                    String x = "Incomplete";
+                    for (Triangle triangle : triangleList) {
+                        for (Triangle other : triangleList.subList(index,toIndex)) {
+                            Vector<Line> sharedEdges = triangle.shareEdges(other);
+                            if (sharedEdges.size() > 0) {
+                                ShareEdgedResponse response = new ShareEdgedResponse(triangle, other, sharedEdges);
+                                m_sharedShapesByEdges.add(response);
+                            }
+                        }
+                        index++;
+                    }
                     break;
                 default:
                     throw new ProtocolException("406: Please specify point or edges");
@@ -492,7 +524,7 @@ public final class Server {
     //CLASSES
     private static abstract class Shape{
         public Vector<Point> points = new Vector<>();
-        public Vector<Line> vertices = new Vector<>();
+        public Vector<Line> edges = new Vector<>();
         public int count = 1;
 
         public void incrementCount() {
@@ -506,16 +538,16 @@ public final class Server {
         private double perimeter = 0;
         public double getPerimeter(){
             if (perimeter==0){
-                for (Line vertice : vertices) {
-                    perimeter += Math.sqrt(vertice.lengthSquared);
+                for (Line edge : edges) {
+                    perimeter += Math.sqrt(edge.lengthSquared);
                 }
             }
             return perimeter;
         }
 
         public void setPerimiter(){
-            for (Line vertice : vertices) {
-                perimeter += Math.sqrt(vertice.lengthSquared);
+            for (Line edge : edges) {
+                perimeter += Math.sqrt(edge.lengthSquared);
             }
         }
 
@@ -553,16 +585,16 @@ public final class Server {
         protected void orderPoints() {
             int bottomLeftIndex = getBottomLeft();
             Point pointA = this.points.remove(bottomLeftIndex);
-            ArrayList<Line> vertices = new ArrayList<>();
+            ArrayList<Line> edges = new ArrayList<>();
             for (Point point : this.points) {
-                vertices.add(new Line(pointA, point));
+                edges.add(new Line(pointA, point));
             }
             this.points.removeAllElements();
-            vertices.sort(new LineSlopeComparator());
+            edges.sort(new LineSlopeComparator());
 
             this.points.add(pointA);
-            for (Line vertice : vertices) {
-                this.points.add(vertice.pair[1]);
+            for (Line edge : edges) {
+                this.points.add(edge.pair[1]);
             }
         }
 
@@ -596,6 +628,18 @@ public final class Server {
             }
             return sharedPoints;
         }
+
+        public Vector<Line> shareEdges(Shape other){
+            Vector<Line> sharedEdges = new Vector<>();
+            for (Line edge : this.edges) {
+                sharedEdges.addAll(other.edges.stream()
+                        .filter(edge::equals)
+                        .map(otherLine -> edge)
+                        .collect(Collectors.toList()));
+            }
+            return sharedEdges;
+        }
+
 
         public boolean crossProduct(Point a, Point b, Point c) {
             int crossProduct = (c.y - a.y) * (b.x - a.x) - (c.x - a.x) * (b.y - a.y);
@@ -641,10 +685,10 @@ public final class Server {
                 Line right = new Line(b, c);
                 Line top = new Line(c, d);
                 Line left = new Line(d, a);
-                super.vertices.add(bottom);
-                super.vertices.add(right);
-                super.vertices.add(top);
-                super.vertices.add(left);
+                super.edges.add(bottom);
+                super.edges.add(right);
+                super.edges.add(top);
+                super.edges.add(left);
                 super.setPerimiter();
                 super.setArea();
 
@@ -925,6 +969,28 @@ public final class Server {
             return (firstHalf-secondHalf)==0;
         }
 
+
+        @Override
+        public boolean equals(Object obj){
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final Line other = (Line) obj;
+            boolean xsMatch = this.pair[0].equals(other.pair[0]);
+            boolean ysMatch = this.pair[1].equals(other.pair[1]);
+            return xsMatch && ysMatch;
+        }
+
+        @Override
+        public String toString(){
+            return String.valueOf(this.pair[0]) + "->" + this.pair[1];
+        }
+
+
+
     }
     public static class LineSlopeComparator implements Comparator<Line> {
         /**
@@ -970,8 +1036,34 @@ public final class Server {
             }
             return output.toString();
         }
-
     }
+    public static class ShareEdgedResponse {
+        private Vector<Shape> m_sharingShapes = new Vector<>();
+        private Vector<Line> m_sharedEdges;
 
+        public ShareEdgedResponse(Shape shape, Shape shape2, Vector<Line> sharedEdges){
+            m_sharedEdges = sharedEdges;
+            m_sharingShapes.add(shape);
+            m_sharingShapes.add(shape2);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder output = new StringBuilder();
+            for (Shape shape : m_sharingShapes) {
+                output.append(shape.toString());
+                output.append("-");
+            }
+            boolean first = true;
+            for (Line edge : m_sharedEdges) {
+                if (!first) {
+                    output.append(",");
+                }
+                output.append(edge.toString());
+                first = false;
+            }
+            return output.toString();
+        }
+    }
 }
 
