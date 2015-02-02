@@ -270,7 +270,7 @@ public final class Server {
             if(!value.matches(DECIMAL_NUMBER_REGEX)){
                 throw new ProtocolException("406: Invalid Area Value");
             }
-            int area = Integer.parseInt(value);
+            double area = Double.parseDouble(value);
             switch (operand){
                 case "=":
                     quadrilateralStream.filter(q->q.getArea()==area).forEach(results::add);
@@ -302,7 +302,7 @@ public final class Server {
             if(!value.matches(DECIMAL_NUMBER_REGEX)){
                 throw new ProtocolException("406: Invalid Perimeter Value");
             }
-            int perimeter = Integer.parseInt(value);
+            double perimeter = Double.parseDouble(value);
             switch (operand){
                 case "=":
                     quadrilateralStream.filter(q->q.getPerimeter()==perimeter).forEach(results::add);
@@ -399,7 +399,7 @@ public final class Server {
             if(!value.matches(DECIMAL_NUMBER_REGEX)){
                 throw new ProtocolException("406: Invalid Area Value");
             }
-            int area = Integer.parseInt(value);
+            double area = Double.parseDouble(value);
             switch (operand){
                 case "=":
                     triangleStream.filter(t -> t.getArea() == area).forEach(results::add);
@@ -431,7 +431,7 @@ public final class Server {
             if(!value.matches(DECIMAL_NUMBER_REGEX)){
                 throw new ProtocolException("406: Invalid Perimeter Value");
             }
-            int perimeter = Integer.parseInt(value);
+            double perimeter = Double.parseDouble(value);
             switch (operand){
                 case "=":
                     triangleStream.filter(t -> t.getPerimeter() == perimeter).forEach(results::add);
