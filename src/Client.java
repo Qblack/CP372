@@ -104,7 +104,7 @@ public class Client {
 					
 					m_inputText.setEnabled(true);
 					m_inputText.setBackground(new Color(0xBC7FFF));
-					m_inputText.setForeground(new Color(0xFFBC7F));
+					m_inputText.setForeground(new Color(0x000000));
 					m_inputText.setFont(new java.awt.Font("Arial", Font.ITALIC | Font.BOLD, 12));
 					
 					m_ipText.setEnabled(false);
