@@ -1,5 +1,3 @@
-//package src;
-
 import java.io.* ;
 import java.io.InputStream;
 import java.lang.Exception;
