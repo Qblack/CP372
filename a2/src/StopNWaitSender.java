@@ -40,6 +40,9 @@ public class StopNWaitSender {
 			DatagramSocket recvToSend = new DatagramSocket(sendUDPPort,hostAddr);
 			int time = 1000;				//time of timeout for packets in milliseconds
 			
+			//set start time for transmission
+			long start = System.nanoTime();
+			
 			int offset = 0;
 			int num = 0;
 			int sequence = 0;
@@ -67,6 +70,7 @@ public class StopNWaitSender {
 				
 				//create & send packet to receiver
 				DatagramPacket packet = new DatagramPacket(msg,msg.length,hostAddr,recUDPPort);
+				sendToRecv.send(packet);
 				
 				//wait for response from receiver
 				sendToRecv.setSoTimeout(time);				//in milliseconds
@@ -103,6 +107,9 @@ public class StopNWaitSender {
 			//close sockets
 			sendToRecv.close();
 			recvToSend.close();
+			
+			//report total transmission time
+			System.out.println("\nTime to transmit in Milliseconds: " + (System.nanoTime() - start)/1000000);
 		}
 	}
 }
