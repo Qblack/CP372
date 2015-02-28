@@ -65,13 +65,15 @@ public class StopNWaitSender {
 				}else{
 					pkt = 0;
 				}
-				//add sequence number to packet
+				//add ACK number to packet
 				msg[0] = pkt;
 				
 				//create & send packet to receiver
 				DatagramPacket packet = new DatagramPacket(msg,msg.length,hostAddr,recUDPPort);
-				sendToRecv.send(packet);
-				
+				//check for dropped packets
+				if (sequence % rn != 0) {) {
+					sendToRecv.send(packet);
+				}
 				//wait for response from receiver
 				sendToRecv.setSoTimeout(time);				//in milliseconds
 				boolean resp = false;
@@ -80,14 +82,13 @@ public class StopNWaitSender {
 					try{
 						recvToSend.receive(ack);
 						//check if valid ACK and every packet not lost
-						if (ack[0]) == pkt) && (sequence % rn != 0){
+						if (ack[0]) == pkt){
 							resp = true;
 						}
 						//if not, resend packet
 						else{
 							sendToRecv.send(packet);
 							sendToRecv.setSoTimeout(time);
-							sequence = sequence + 1;
 						}
 					}
 					//in case of dropped packet
@@ -95,7 +96,6 @@ public class StopNWaitSender {
 						//resend packet
 						sendToRecv.send(packet);
 						sendToRecv.setSoTimeout(time);
-						sequence = sequence + 1;
 					}
 				}
 			}
