@@ -31,13 +31,16 @@ public class GoBackNSender {
         int senderPort;
         int reliabilityNumber;
         int windowSize;
+        InetAddress m_receiver;
+        DatagramPacket EOT = new DatagramPacket("FIN".getBytes(),3,m_receiver,this.destinationPort);
 
-        public Sender(String destinationAddress,int destinationPort,int senderPort, int reliabilityNumber, int windowSize){
+        public Sender(String destinationAddress,int destinationPort,int senderPort, int reliabilityNumber, int windowSize) throws UnknownHostException {
             this.destinationAddress = destinationAddress;
             this.destinationPort = destinationPort;
             this.senderPort = senderPort;
             this.reliabilityNumber = reliabilityNumber;
             this.windowSize = windowSize;
+            m_receiver = InetAddress.getByName(this.destinationAddress);
         }
 
         public void SendFile(String fileName) throws IOException {
@@ -49,12 +52,15 @@ public class GoBackNSender {
             byte[] buffer = new byte[124];
             int bytesRead = 0;
             int totalBytes = (int) fileHandle.length();
-            while (bytesRead<=totalBytes){
-                int read = fileData.read(buffer, bytesRead, totalBytes-bytesRead);
-                InetAddress receiver = InetAddress.getByName(this.destinationAddress);
-                DatagramPacket packet = new DatagramPacket(buffer,buffer.length,receiver,this.destinationPort);
+            int read = 0;
+            while (bytesRead<=totalBytes && read!=-1){
+                read = fileData.read(buffer, bytesRead, totalBytes-bytesRead);
+
+                DatagramPacket packet = new DatagramPacket(buffer,buffer.length,m_receiver,this.destinationPort);
                 socket.send(packet);
             }
+            socket.send(this.EOT);
+
             socket.close();
         }
     }
