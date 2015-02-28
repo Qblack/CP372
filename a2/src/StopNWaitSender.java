@@ -38,9 +38,11 @@ public class StopNWaitSender {
 			//create Datagram sockets
 			DatagramSocket sendToRecv = new DatagramSocket(recUDPPort,hostAddr);
 			DatagramSocket recvToSend = new DatagramSocket(sendUDPPort,hostAddr);
+			int time = 1000;				//time of timeout for packets in milliseconds
 			
 			int offset = 0;
 			int num = 0;
+			int sequence = 0;
 			byte pkt = 1;
 			while ((offset<len)&&(num!=-1)){
 				//clear message and set to needed size, then read in data
@@ -52,8 +54,9 @@ public class StopNWaitSender {
 					num = readFile.read(msg,1,readBytes);
 				}
 				offset = offset + readBytes;
+				sequence = sequence + 1
 				
-				//set sequence number
+				//set sequence acknowledgement code
 				if (pkt == 0){
 					pkt = 1;
 				}else{
@@ -64,29 +67,31 @@ public class StopNWaitSender {
 				
 				//create & send packet to receiver
 				DatagramPacket packet = new DatagramPacket(msg,msg.length,hostAddr,recUDPPort);
-				//System.out.write(packet.getData());
 				
 				//wait for response from receiver
-				sendToRecv.setSoTimeout(1000);				//in milliseconds
+				sendToRecv.setSoTimeout(time);				//in milliseconds
 				boolean resp = false;
+				
 				while(resp == false){
 					try{
 						recvToSend.receive(ack);
-						//check if valid ACK
-						if (ack[0]) == pkt){
+						//check if valid ACK and every packet not lost
+						if (ack[0]) == pkt) && (sequence % rn != 0){
 							resp = true;
 						}
 						//if not, resend packet
 						else{
 							sendToRecv.send(packet);
-							sendToRecv.setSoTimeout(1000);
+							sendToRecv.setSoTimeout(time);
+							sequence = sequence + 1;
 						}
 					}
 					//in case of dropped packet
 					catch (SocketTimeoutException e){
 						//resend packet
 						sendToRecv.send(packet);
-						sendToRecv.setSoTimeout(1000);
+						sendToRecv.setSoTimeout(time);
+						sequence = sequence + 1;
 					}
 				}
 			}
