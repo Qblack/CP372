@@ -13,7 +13,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-public class StopNWaitReciever {
+public class StopNWaitSender {
 	
 	public static void main (String[] args) throws IOException {
 		// Get inputs 
@@ -67,6 +67,7 @@ public class StopNWaitReciever {
 				
 				//create & send packet to receiver
 				DatagramPacket packet = new DatagramPacket(msg,msg.length,hostAddr,recUDPPort);
+				//System.out.println(packet.getData());
 				sendToRecv.send(packet);
 				
 				//wait for response from receiver
