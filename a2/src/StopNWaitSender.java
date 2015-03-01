@@ -31,75 +31,85 @@ public class StopNWaitSender {
 			int len = (int) sendFile.length();
 			
 			//read file
-			byte[] msg;						//stores read data
-			msg=new byte[123];
+			int readBytes = 124;
+			byte[] msg = new byte[readBytes];
 			FileInputStream readFile = new FileInputStream(sendFile);
-			
-			int offset = 0;
-			int num;
-			do {
-				num = readFile.read(msg,offset,len-offset);
-				offset = offset + num;
-			} while((offset<len)&&(num!=-1));
-			readFile.close();
 			
 			//create Datagram sockets
 			DatagramSocket sendToRecv = new DatagramSocket(recUDPPort,hostAddr);
 			DatagramSocket recvToSend = new DatagramSocket(sendUDPPort,hostAddr);
+			int time = 1000;				//time of timeout for packets in milliseconds
 			
-			//send packets
-			byte[] buf = new byte[1];
-			DatagramPacket ack = new DatagramPacket(buf,buf.length);
-			int pkt = 1;
-			for (int i=0; num < msg.length; i++){
-				//assign packet number
+			//set start time for transmission
+			long start = System.nanoTime();
+			
+			int offset = 0;
+			int num = 0;
+			int sequence = 0;
+			byte pkt = 1;
+			while ((offset<len)&&(num!=-1)){
+				//clear message and set to needed size, then read in data
+				if ((offset+readBytes)>len){
+					msg = new byte[len-offset];
+					num = readFile.read(msg,1,len-offset);
+				}else{
+					msg = new byte[readBytes];
+					num = readFile.read(msg,1,readBytes);
+				}
+				offset = offset + readBytes;
+				sequence = sequence + 1
+				
+				//set sequence acknowledgement code
 				if (pkt == 0){
 					pkt = 1;
-				}
-				else{
+				}else{
 					pkt = 0;
 				}
-				/*
-				 * Need to add sequence number to packet
-				 * Need to add RN (Reliability Number)
-				 * Need to only send one packet at a time (potentially move into above do-while loop)
-				 */
+				//add ACK number to packet
+				msg[0] = pkt;
 				
 				//create & send packet to receiver
 				DatagramPacket packet = new DatagramPacket(msg,msg.length,hostAddr,recUDPPort);
-				//System.out.println(packet.getData());
-				sendToRecv.send(packet);
-				
+				//check for dropped packets
+				if (sequence % rn != 0) {) {
+					sendToRecv.send(packet);
+				}
 				//wait for response from receiver
-				sendToRecv.setSoTimeout(1000);
+				sendToRecv.setSoTimeout(time);				//in milliseconds
 				boolean resp = false;
-				while(resp==false){
+				
+				while(resp == false){
 					try{
 						recvToSend.receive(ack);
-						//check if valid ACK
-						if (Integer.parseInt(ack.toString())==pkt){
+						//check if valid ACK and every packet not lost
+						if (ack[0]) == pkt){
 							resp = true;
 						}
 						//if not, resend packet
 						else{
 							sendToRecv.send(packet);
-							sendToRecv.setSoTimeout(1000);
+							sendToRecv.setSoTimeout(time);
 						}
 					}
 					//in case of dropped packet
 					catch (SocketTimeoutException e){
 						//resend packet
 						sendToRecv.send(packet);
-						sendToRecv.setSoTimeout(1000);
+						sendToRecv.setSoTimeout(time);
 					}
 				}
 			}
+			readFile.close();
+			
 			DatagramPacket EOT = new DatagramPacket("FIN".getBytes(),3,hostAddr,recUDPPort);
 			sendToRecv.send(EOT);
 			
 			//close sockets
 			sendToRecv.close();
 			recvToSend.close();
+			
+			//report total transmission time
+			System.out.println("\nTime to transmit in Milliseconds: " + (System.nanoTime() - start)/1000000);
 		}
 	}
 }
