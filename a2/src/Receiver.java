@@ -19,11 +19,15 @@ public class Receiver{
 
 
     public static class ReceiverThread {
+        private static final String ACK = "ack";
         InetAddress senderAddress;
         int senderPort;
         int receiverPort;
         String fileName;
-
+        private FileOutputStream outFile;
+        private int expectedseqnum =0;
+        private DatagramSocket socket;
+        private DatagramPacket sndpkt;
 
 
         public ReceiverThread(String senderAddress,int sPort,int rPort, String fileName) throws UnknownHostException {
@@ -36,32 +40,63 @@ public class Receiver{
 
         public void start() throws IOException, InterruptedException {
             File fileHandler = new File(this.fileName);
-            FileOutputStream outFile = new FileOutputStream(fileHandler);
-            DatagramSocket socket = new DatagramSocket(this.receiverPort);
+            outFile = new FileOutputStream(fileHandler);
+            socket = new DatagramSocket(this.receiverPort);
 
-            int expectedSeqNumber = 0;
-            DatagramPacket packet = new DatagramPacket(new byte[61],61);
-            while("FIN".getBytes()!=packet.getData()){
-                socket.receive(packet);
-                byte[] packetData = packet.getData();
-                int actualSeqNumber = packetData[0];
-                DatagramPacket ackPacket;
-                if(actualSeqNumber==expectedSeqNumber){
-                    outFile.write(packet.getData());
-                    ackPacket = makeACK(expectedSeqNumber);
-                    expectedSeqNumber++;
-                }else{
-                    ackPacket = makeACK(expectedSeqNumber);
-                }
-                socket.send(ackPacket);
+            this.expectedseqnum = 0;
+            this.sndpkt = make_pkt(0,ACK);
+
+//            default_receive();
+            DatagramPacket rcvpkt = new DatagramPacket(new byte[]{},0);
+            boolean eof = false;
+            while(!eof){
+                this.socket.receive(rcvpkt);
+                eof = rdt_rcv(rcvpkt);
             }
             outFile.close();
             socket.close();
         }
 
+        private boolean rdt_rcv(DatagramPacket rcvpkt) throws IOException {
+            boolean eof = false;
+            byte[] data = extract(rcvpkt);
+            if(data=="EOF".getBytes()){
+                eof=true;
+            }else{
+                deliver_data(data);
+                sndpkt = make_pkt(this.expectedseqnum,ACK);
+                udt_send(sndpkt);
+                this.expectedseqnum++;
+            }
+            return eof;
+        }
 
-        private DatagramPacket makeACK(int expectedSeqNumber){
-            byte[] byteData = ("ack"+String.valueOf(expectedSeqNumber)).getBytes();
+        private void default_receive() throws IOException {
+            udt_send(sndpkt);
+        }
+
+
+        private void udt_send(DatagramPacket sndpkt) throws IOException {
+            this.socket.send(sndpkt);
+        }
+
+        private void deliver_data(byte[] data) throws IOException {
+            this.outFile.write(data);
+        }
+
+        private byte[] extract(DatagramPacket rcvpkt) {
+            return rcvpkt.getData();
+        }
+
+
+        private DatagramPacket make_pkt(int expectedSeqNumber,String ack){
+            byte[] byteData = new byte[ack.length()+1];
+            int i=0;
+            for(byte b : ack.getBytes()){
+                byteData[i]=b;
+                i++;
+            }
+            byteData[byteData.length-1] = (byte) (expectedSeqNumber%128);
             return new DatagramPacket(byteData,byteData.length,this.senderAddress,this.senderPort);
         }
     }
