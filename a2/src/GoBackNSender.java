@@ -42,8 +42,8 @@ public class GoBackNSender {
         private InetAddress receiver;
         private DatagramPacket eot;
         private DatagramSocket socket;
-        private Timer timer = new Timer();
-        private final TimerTask start_timer = new TimerTask() {
+        private Timer timer = null;
+        private TimerTask start_timer = new TimerTask() {
             @Override
             public void run() {
                 try {
@@ -87,7 +87,7 @@ public class GoBackNSender {
                 do{
                     sent = rdt_send(data);
                     byte[] tobugg = new byte[PACKET_SIZE];
-                    DatagramPacket receivedPacket = new DatagramPacket(tobugg,tobugg.length);
+                    DatagramPacket receivedPacket = make_pkt(this.nextSeqNum, tobugg);
                     socket.receive(receivedPacket);
                     rdt_rcv(receivedPacket);
                 }while(!sent);
@@ -102,9 +102,9 @@ public class GoBackNSender {
         private boolean rdt_send(byte[] data) throws IOException, InterruptedException {
             if(this.nextSeqNum<this.sendBase+this.windowSize){
                 this.sndpkt[this.nextSeqNum] = make_pkt(this.nextSeqNum, data);
-                this.socket.send(this.sndpkt[this.nextSeqNum]);
+                send_pkt(this.sndpkt[this.nextSeqNum]);
                 if(this.sendBase==this.nextSeqNum){
-                    timer.schedule(start_timer, TIMEOUT);
+                    start_timer();
                 }
                 this.nextSeqNum= (this.nextSeqNum+1)%128;
                 return true;
@@ -113,7 +113,7 @@ public class GoBackNSender {
         }
 
         private void timeout() throws IOException {
-            timer.schedule(start_timer,TIMEOUT);
+            start_timer();
             for(int i=this.sendBase;i<this.nextSeqNum;i++){
                 this.socket.send(this.sndpkt[i]);
             }
@@ -122,11 +122,9 @@ public class GoBackNSender {
         private void rdt_rcv(DatagramPacket rcvpkt){
             this.sendBase = getacknum(rcvpkt)+1;
             if(this.sendBase==this.nextSeqNum){
-                this.timer.cancel();
+                stop_timer();
             }else{
-//                this.timer.cancel();
-//                this.timer.purge();
-//                this.timer.schedule(this.start_timer,TIMEOUT);
+                start_timer();
             }
         }
 
@@ -137,9 +135,26 @@ public class GoBackNSender {
         }
 
 
-        private DatagramPacket make_pkt(int nextSequenceNumber, byte[] data){
+        private DatagramPacket make_pkt(int nextSequenceNumber, byte[] data) throws IOException {
             data[0] = (byte) nextSequenceNumber;
             return new DatagramPacket(data,data.length, receiver, this.destinationPort);
+        }
+
+        private void send_pkt(DatagramPacket packet) throws IOException {
+            System.out.write(packet.getData());
+            this.socket.send(packet);
+        }
+
+        private void start_timer(){
+//            this.timer = new Timer();
+//            this.timer.schedule(this.start_timer,TIMEOUT);
+        }
+
+
+        private void stop_timer(){
+//            this.timer.cancel();
+//            this.timer.purge();
+//            this.timer = null;
         }
 
 

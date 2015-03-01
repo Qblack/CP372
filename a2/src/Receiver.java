@@ -5,6 +5,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 
 public class Receiver{
 
@@ -20,6 +21,7 @@ public class Receiver{
 
     public static class ReceiverThread {
         private static final String ACK = "ack";
+        public static final String EOF = "EOF";
         InetAddress senderAddress;
         int senderPort;
         int receiverPort;
@@ -47,7 +49,8 @@ public class Receiver{
             this.sndpkt = make_pkt(0,ACK);
 
 //            default_receive();
-            DatagramPacket rcvpkt = new DatagramPacket(new byte[]{},0);
+            byte[] buffer = new byte[125];
+            DatagramPacket rcvpkt = new DatagramPacket(buffer,buffer.length);
             boolean eof = false;
             while(!eof){
                 this.socket.receive(rcvpkt);
@@ -60,7 +63,9 @@ public class Receiver{
         private boolean rdt_rcv(DatagramPacket rcvpkt) throws IOException {
             boolean eof = false;
             byte[] data = extract(rcvpkt);
-            if(data=="EOF".getBytes()){
+            System.out.println("DATA:");
+            System.out.write(data);
+            if(Arrays.equals(data, EOF.getBytes())){
                 eof=true;
             }else{
                 deliver_data(data);
@@ -81,11 +86,18 @@ public class Receiver{
         }
 
         private void deliver_data(byte[] data) throws IOException {
-            this.outFile.write(data);
+            if(data.length>1){
+                this.outFile.write(data,1,data.length-1);
+            }
         }
 
         private byte[] extract(DatagramPacket rcvpkt) {
-            return rcvpkt.getData();
+            byte[] data = new byte[rcvpkt.getLength()];
+            byte[] rcvpktData = rcvpkt.getData();
+            for(int i =0;i<data.length;i++){
+                data[i] = rcvpktData[i];
+            }
+            return data;
         }
 
 
