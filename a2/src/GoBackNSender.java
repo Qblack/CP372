@@ -24,35 +24,26 @@ public class GoBackNSender {
 
         Sender sender = new Sender(destinationAddress,destinationPort,senderPort,reliabilityNumber,windowSize);
         sender.start(fileName);
-
     }
 
     public static class Sender{
         private  static final int FILE_DATA_SIZE = 60;
         private  static final int PACKET_SIZE = FILE_DATA_SIZE+1;
-        public static final int TIMEOUT = 4*100000000;
+        public static final int TIMEOUT = 400;
         private String destinationAddress;
         private int destinationPort;
         private int senderPort;
         private int reliabilityNumber;
         private int windowSize;
         private int nextSeqNum = 0;
+        private int attemptedSent = 1;
         private int sendBase=0;
         private DatagramPacket[] sndpkt;
         private InetAddress receiver;
         private DatagramPacket eot;
         private DatagramSocket socket;
         private Timer timer = null;
-        private TimerTask start_timer = new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    timeout();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
+
 
 
         public Sender(String destinationAddress,int destinationPort,int senderPort, int reliabilityNumber, int windowSize) throws UnknownHostException {
@@ -66,7 +57,7 @@ public class GoBackNSender {
         }
 
         public void start(String fileName) throws IOException, InterruptedException {
-            socket = new DatagramSocket(this.senderPort);
+            this.socket = new DatagramSocket(this.senderPort);
 
             File fileHandle = new File(fileName);
             FileInputStream fileData = new FileInputStream(fileHandle);
@@ -77,6 +68,7 @@ public class GoBackNSender {
             int totalBytes = (int) fileHandle.length();
             int read = 0;
             byte[] data;
+
             while (bytesRead<totalBytes && read!=-1) {
                 data = new byte[PACKET_SIZE];
                 int bytesToRead = Math.min(totalBytes - bytesRead, data.length - 1);
@@ -86,16 +78,19 @@ public class GoBackNSender {
                 boolean sent;
                 do{
                     sent = rdt_send(data);
-                    byte[] tobugg = new byte[PACKET_SIZE];
-                    DatagramPacket receivedPacket = make_pkt(this.nextSeqNum, tobugg);
-                    socket.receive(receivedPacket);
+                    byte[] tobuff = new byte[PACKET_SIZE];
+                    DatagramPacket receivedPacket = make_pkt(this.nextSeqNum, tobuff);
+                    this.socket.receive(receivedPacket);
                     rdt_rcv(receivedPacket);
+
                 }while(!sent);
 
             }
 
-            socket.send(this.eot);
-            socket.close();
+            this.socket.send(this.eot);
+            this.socket.close();
+            fileData.close();
+            stop_timer();
 
         }
 
@@ -106,7 +101,7 @@ public class GoBackNSender {
                 if(this.sendBase==this.nextSeqNum){
                     start_timer();
                 }
-                this.nextSeqNum= (this.nextSeqNum+1)%128;
+                this.nextSeqNum = (this.nextSeqNum+1)%128;
                 return true;
             }
             return false;
@@ -114,8 +109,9 @@ public class GoBackNSender {
 
         private void timeout() throws IOException {
             start_timer();
+            System.out.println("SendBase: " + this.sendBase + " Next:" + this.nextSeqNum);
             for(int i=this.sendBase;i<this.nextSeqNum;i++){
-                this.socket.send(this.sndpkt[i]);
+                send_pkt(this.sndpkt[i]);
             }
         }
 
@@ -141,20 +137,33 @@ public class GoBackNSender {
         }
 
         private void send_pkt(DatagramPacket packet) throws IOException {
-            System.out.write(packet.getData());
-            this.socket.send(packet);
+            if(this.reliabilityNumber==0 || this.attemptedSent %this.reliabilityNumber!=0){
+                this.socket.send(packet);
+            }
+            this.attemptedSent++;
         }
 
         private void start_timer(){
-//            this.timer = new Timer();
-//            this.timer.schedule(this.start_timer,TIMEOUT);
+            stop_timer();
+            this.timer = new Timer();
+            this.timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    try {
+                        timeout();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            },TIMEOUT);
         }
 
 
         private void stop_timer(){
-//            this.timer.cancel();
-//            this.timer.purge();
-//            this.timer = null;
+            if(this.timer!=null){
+                this.timer.cancel();
+                this.timer.purge();
+            }
         }
 
 

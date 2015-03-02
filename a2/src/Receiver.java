@@ -48,7 +48,7 @@ public class Receiver{
             this.expectedseqnum = 0;
             this.sndpkt = make_pkt(0,ACK);
 
-//            default_receive();
+            default_receive();
             byte[] buffer = new byte[125];
             DatagramPacket rcvpkt = new DatagramPacket(buffer,buffer.length);
             boolean eof = false;
@@ -58,12 +58,12 @@ public class Receiver{
             }
             outFile.close();
             socket.close();
+
         }
 
         private boolean rdt_rcv(DatagramPacket rcvpkt) throws IOException {
             boolean eof = false;
             byte[] data = extract(rcvpkt);
-            System.out.println("DATA:");
             System.out.write(data);
             if(Arrays.equals(data, EOF.getBytes())){
                 eof=true;
