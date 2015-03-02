@@ -67,6 +67,8 @@ public class Receiver{
             System.out.write(data);
             if(Arrays.equals(data, EOF.getBytes())){
                 eof=true;
+                sndpkt = make_pkt(this.expectedseqnum,ACK);
+                udt_send(sndpkt);
             }else{
                 deliver_data(data);
                 sndpkt = make_pkt(this.expectedseqnum,ACK);

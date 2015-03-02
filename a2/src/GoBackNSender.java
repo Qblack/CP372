@@ -21,9 +21,12 @@ public class GoBackNSender {
         String fileName = args[3];
         int reliabilityNumber = Integer.parseInt(args[4]);
         int windowSize = Integer.parseInt(args[5]);
-
+        long startTime = System.nanoTime();
         Sender sender = new Sender(destinationAddress,destinationPort,senderPort,reliabilityNumber,windowSize);
         sender.start(fileName);
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime)/1000000;
+        System.out.format("Total Transmission Time: %d milliseconds",duration);
     }
 
     public static class Sender{
@@ -109,7 +112,6 @@ public class GoBackNSender {
 
         private void timeout() throws IOException {
             start_timer();
-            System.out.println("SendBase: " + this.sendBase + " Next:" + this.nextSeqNum);
             for(int i=this.sendBase;i<this.nextSeqNum;i++){
                 send_pkt(this.sndpkt[i]);
             }
