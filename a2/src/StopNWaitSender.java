@@ -37,7 +37,7 @@ public class StopNWaitSender {
 			
 			//create Datagram sockets
 			DatagramSocket sendToRecv = new DatagramSocket(recUDPPort,hostAddr);
-			DatagramSocket recvToSend = new DatagramSocket(recUDPPort,hostAddr);
+			DatagramSocket recvToSend = new DatagramSocket(sendUDPPort,hostAddr);
 			int time = 1000;				//time of timeout for packets in milliseconds
 			
 			//set start time for transmission
