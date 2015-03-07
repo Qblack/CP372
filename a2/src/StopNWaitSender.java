@@ -57,7 +57,7 @@ public class StopNWaitSender {
 					num = readFile.read(msg,1,readBytes);
 				}
 				offset = offset + readBytes;
-				sequence = sequence + 1
+				sequence = sequence + 1;
 				
 				//set sequence acknowledgement code
 				if (pkt == 0){
@@ -71,7 +71,7 @@ public class StopNWaitSender {
 				//create & send packet to receiver
 				DatagramPacket packet = new DatagramPacket(msg,msg.length,hostAddr,recUDPPort);
 				//check for dropped packets
-				if (sequence % rn != 0) {) {
+				if (sequence % rn != 0) {
 					sendToRecv.send(packet);
 				}
 				//wait for response from receiver
@@ -79,14 +79,17 @@ public class StopNWaitSender {
 				boolean resp = false;
 				
 				while(resp == false){
+					byte[] ack = new byte[1];
+					DatagramPacket p_ack = new DatagramPacket(ack, 1);
 					try{
-						recvToSend.receive(ack);
+						recvToSend.receive(p_ack);
+						ack = p_ack.getData();
 						//check if valid ACK and every packet not lost
-						if (ack[0]) == pkt){
+						if ( msg[0] == ack[p_ack.getLength() - 1]){
 							resp = true;
 						}
 						//if not, resend packet
-						else{
+						else {
 							sendToRecv.send(packet);
 							sendToRecv.setSoTimeout(time);
 						}
@@ -110,6 +113,9 @@ public class StopNWaitSender {
 			
 			//report total transmission time
 			System.out.println("\nTime to transmit in Milliseconds: " + (System.nanoTime() - start)/1000000);
+		}
+		else{
+			System.out.println("Invalid number of arguments.");
 		}
 	}
 }
