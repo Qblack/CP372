@@ -24,7 +24,7 @@ public class StopNWaitSender {
 	        int recUDPPort = Integer.parseInt(args[1]);
 	        int sendUDPPort=Integer.parseInt(args[2]);
 	        String filename = args[3];
-	        int rn = Integer.parseInt(args[3]);
+	        int rn = Integer.parseInt(args[4]);
 			
 			//open file
 			File sendFile = new File(filename);
@@ -37,7 +37,7 @@ public class StopNWaitSender {
 			
 			//create Datagram sockets
 			DatagramSocket sendToRecv = new DatagramSocket(recUDPPort,hostAddr);
-			DatagramSocket recvToSend = new DatagramSocket(sendUDPPort,hostAddr);
+			DatagramSocket recvToSend = new DatagramSocket(recUDPPort,hostAddr);
 			int time = 1000;				//time of timeout for packets in milliseconds
 			
 			//set start time for transmission
