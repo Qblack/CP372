@@ -2,7 +2,7 @@
 // * Quinton Black
 // * Colin Hagerman
 // * CP372: Networks
-// * Assignment 2:  Sender Java file for Stop-and-Wait
+// * Assignment 2:  GoBackNClient Java file for Stop-and-Wait
 // */
 //
 //import java.io.*;
