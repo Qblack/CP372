@@ -32,7 +32,6 @@ public class StopNWaitSender {
 			
 			//read file
 			int readBytes = 124;
-			byte[] msg = new byte[readBytes];
 			FileInputStream readFile = new FileInputStream(sendFile);
 			
 			//create Datagram sockets
@@ -42,21 +41,16 @@ public class StopNWaitSender {
 			//set start time for transmission
 			long start = System.nanoTime();
 			
-			int offset = 0;
+			int bytesRead = 0;
 			int num = 0;
 			int sequence = 0;
 			byte pkt = 1;
-			while ((offset<len)&&(num!=-1)){
-				System.out.println("First While: num=" + num + " Offset=" + offset + " Packet=" + pkt + " Sequence=" + sequence); 
-				//clear message and set to needed size, then read in data
-				if ((offset+readBytes)>len){
-					msg = new byte[len-offset];
-					num = readFile.read(msg,1,len-offset-1);
-				}else{
-					msg = new byte[readBytes];
-					num = readFile.read(msg,1,readBytes);
-				}
-				offset = offset + readBytes;
+			int bytesToRead = 0;
+			while ((bytesRead<len)&&(num!=-1)){
+				byte[] msg = new byte[readBytes];
+				bytesToRead = Math.min(len - bytesRead, msg.length - 1);
+				num = readFile.read(msg,1,bytesToRead);
+				bytesRead = bytesRead + num;
 				sequence = sequence + 1;
 				
 				//set sequence acknowledgement code
@@ -78,20 +72,19 @@ public class StopNWaitSender {
 				sock.setSoTimeout(time);				//in milliseconds
 				boolean resp = false;
 				
-				while(resp == false){
-					System.out.println("Second While: msg=" + msg[0]); 
-					byte[] ack = new byte[1];
-					DatagramPacket p_ack = new DatagramPacket(ack, 1);
+				while(resp == false){ 
+					byte[] ack = new byte[4];
+					DatagramPacket p_ack = new DatagramPacket(ack, 4);
 					try{
 						sock.receive(p_ack);
 						ack = p_ack.getData();
 						//check if valid ACK and every packet not lost
-						System.out.println("in Try: msg=" + msg[0] + " vs. ack=" + ack[p_ack.getLength() - 1]);
-						if ( msg[0] == (ack[p_ack.getLength() - 1]) % 1){
+						if ( msg[0] == (ack[p_ack.getLength() - 1] % 2)){
 							resp = true;
 						}
 						//if not, resend packet
 						else {
+							//System.out.println("resend");
 							sock.send(packet);
 							sock.setSoTimeout(time);
 						}
@@ -106,7 +99,7 @@ public class StopNWaitSender {
 			}
 			readFile.close();
 			
-			DatagramPacket EOT = new DatagramPacket("FIN".getBytes(),3,hostAddr,recUDPPort);
+			DatagramPacket EOT = new DatagramPacket("EOF".getBytes(),3,hostAddr,recUDPPort);
 			sock.send(EOT);
 			
 			//close sockets
