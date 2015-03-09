@@ -9,6 +9,7 @@ import java.io.*;
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -35,8 +36,8 @@ public class StopNWaitSender {
 			FileInputStream readFile = new FileInputStream(sendFile);
 			
 			//create Datagram sockets
-			DatagramSocket sock = new DatagramSocket(sendUDPPort,hostAddr);
-			int time = 1000;				//time of timeout for packets in milliseconds
+			DatagramSocket sock = new DatagramSocket(sendUDPPort);
+			int time = 200;				//time of timeout for packets in milliseconds
 			
 			//set start time for transmission
 			long start = System.nanoTime();
@@ -68,6 +69,7 @@ public class StopNWaitSender {
 				if ((rn == 0)||(sequence % rn != 0)) {
 					sock.send(packet);
 				}
+				//System.out.println(sequence);
 				//wait for response from receiver
 				sock.setSoTimeout(time);				//in milliseconds
 				boolean resp = false;
@@ -79,19 +81,20 @@ public class StopNWaitSender {
 						sock.receive(p_ack);
 						ack = p_ack.getData();
 						//check if valid ACK and every packet not lost
+						//System.out.println("msg:" + msg[0] + " ack:" + (ack[p_ack.getLength() - 1] % 2));
 						if ( msg[0] == (ack[p_ack.getLength() - 1] % 2)){
 							resp = true;
 						}
 						//if not, resend packet
 						else {
-							//System.out.println("resend");
+							//System.out.println("resend-badAck");
 							sock.send(packet);
 							sock.setSoTimeout(time);
 						}
 					}
 					//in case of dropped packet
 					catch (SocketTimeoutException e){
-						//resend packet
+						//System.out.println("resend-timeout");
 						sock.send(packet);
 						sock.setSoTimeout(time);
 					}
