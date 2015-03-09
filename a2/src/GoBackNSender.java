@@ -83,6 +83,7 @@ public class GoBackNSender {
                     sent = rdt_send(data);
                     byte[] tobuff = new byte[PACKET_SIZE];
                     DatagramPacket receivedPacket = make_pkt(this.nextSeqNum, tobuff);
+                    this.socket.setSoTimeout(100);
                     this.socket.receive(receivedPacket);
                     rdt_rcv(receivedPacket);
 

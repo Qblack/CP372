@@ -1,4 +1,4 @@
-Network Working Group                                     P. Mockapetris
+ Mockapetris
 Request for Comments: 1034                                           ISI
 Obsoletes: RFCs 882, 883, 973                              November 1987
 
