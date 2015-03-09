@@ -1,3 +1,5 @@
+import org.omg.PortableServer.THREAD_POLICY_ID;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -45,6 +47,7 @@ public class GoBackNSender {
         private DatagramPacket eot;
         private DatagramSocket socket;
         private Timer timer = null;
+        private boolean allAcked = false;
 
 
 
@@ -71,6 +74,9 @@ public class GoBackNSender {
             int read = 0;
             byte[] data;
 
+            Thread receiver = new Thread(new ReceiverListener());
+            receiver.start();
+
             while (bytesRead<totalBytes && read!=-1) {
                 data = new byte[PACKET_SIZE];
                 int bytesToRead = Math.min(totalBytes - bytesRead, data.length - 1);
@@ -80,33 +86,20 @@ public class GoBackNSender {
                 boolean sent;
                 do{
                     sent = rdt_send(data);
-                    byte[] tobuff = new byte[PACKET_SIZE];
-                    DatagramPacket receivedPacket = make_pkt(this.nextSeqNum, tobuff);
-                    this.socket.setSoTimeout(100000);
-                    try {
-                        this.socket.receive(receivedPacket);
-                    }catch (SocketTimeoutException e){
-                    }
-
-                    rdt_rcv(receivedPacket);
-
                 }while(!sent);
-
             }
 
             this.socket.send(this.eot);
 
+            while(!this.allAcked){
+                boolean x = true;
+            }
 
-            byte[] tobuff;
-            do{
-                tobuff = new byte[6];
-                DatagramPacket receivedPacket = new DatagramPacket(tobuff,6);
-                this.socket.receive(receivedPacket);
-            }while(tobuff[5]==0);
 
+            stop_timer();
             this.socket.close();
             fileData.close();
-            stop_timer();
+
 
         }
 
@@ -143,6 +136,31 @@ public class GoBackNSender {
                 }
             }
         }
+
+        public class ReceiverListener implements Runnable{
+            @Override
+            public void run() {
+                byte[] tobuff;
+                do{
+                    tobuff = new byte[PACKET_SIZE];
+                    DatagramPacket receivedPacket = null;
+                    try {
+                        receivedPacket = make_pkt(nextSeqNum, tobuff);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        assert receivedPacket != null;
+                        socket.receive(receivedPacket);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    rdt_rcv(receivedPacket);
+                }while(tobuff[3]!='E'&&tobuff[4]!='O'&&tobuff[5]!='F');
+                allAcked = true;
+            }
+        }
+
 
         private void rdt_rcv(DatagramPacket rcvpkt){
             this.sendBase = getacknum(rcvpkt)+1;
@@ -201,6 +219,7 @@ public class GoBackNSender {
             if(this.timer!=null){
                 this.timer.cancel();
                 this.timer.purge();
+                this.timer = null;
             }
         }
 
