@@ -28,15 +28,16 @@ public class GoBackNSender {
     }
 
     public static class Sender{
-        private  static final int FILE_DATA_SIZE = 60;
+        private  static final int FILE_DATA_SIZE = 124;
         private  static final int PACKET_SIZE = FILE_DATA_SIZE+1;
-        public static final int TIMEOUT = 400;
+        public static final int TIMEOUT = 1000;
         private String destinationAddress;
         private int destinationPort;
         private int senderPort;
         private int reliabilityNumber;
         private int windowSize;
         private int nextSeqNum = 0;
+        private int MAX_SEQUENCE_NUMBER = 128;
         private int attemptedSent = 1;
         private int sendBase=0;
         private DatagramPacket[] sndpkt;
@@ -63,7 +64,7 @@ public class GoBackNSender {
             File fileHandle = new File(fileName);
             FileInputStream fileData = new FileInputStream(fileHandle);
 
-            this.sndpkt = new DatagramPacket[128];
+            this.sndpkt = new DatagramPacket[256];
 
             int bytesRead = 0;
             int totalBytes = (int) fileHandle.length();
@@ -81,7 +82,7 @@ public class GoBackNSender {
                     sent = rdt_send(data);
                     byte[] tobuff = new byte[PACKET_SIZE];
                     DatagramPacket receivedPacket = make_pkt(this.nextSeqNum, tobuff);
-                    this.socket.setSoTimeout(10000);
+                    this.socket.setSoTimeout(100000);
                     try {
                         this.socket.receive(receivedPacket);
                     }catch (SocketTimeoutException e){
@@ -101,7 +102,7 @@ public class GoBackNSender {
                 tobuff = new byte[6];
                 DatagramPacket receivedPacket = new DatagramPacket(tobuff,6);
                 this.socket.receive(receivedPacket);
-            }while(Arrays.equals("awkEOF".getBytes(),tobuff));
+            }while(tobuff[5]==0);
 
             this.socket.close();
             fileData.close();
@@ -116,7 +117,7 @@ public class GoBackNSender {
                 if(this.sendBase==this.nextSeqNum){
                     start_timer();
                 }
-                this.nextSeqNum = this.nextSeqNum++;
+                this.nextSeqNum = (this.nextSeqNum+1)% MAX_SEQUENCE_NUMBER;
                 return true;
             }
             return false;
@@ -125,9 +126,21 @@ public class GoBackNSender {
         private void timeout() throws IOException {
             start_timer();
             int i = this.sendBase;
-            while(i < this.nextSeqNum){
-                send_pkt(this.sndpkt[i]);
-                i++;
+            if(i<this.nextSeqNum){
+                while(i < this.nextSeqNum){
+                    send_pkt(this.sndpkt[i]);
+                    i++;
+                }
+            }else{
+                while(i < MAX_SEQUENCE_NUMBER){
+                    send_pkt(this.sndpkt[i]);
+                    i++;
+                }
+                i=0;
+                while(i<this.nextSeqNum){
+                    send_pkt(this.sndpkt[i]);
+                    i++;
+                }
             }
         }
 
@@ -143,13 +156,22 @@ public class GoBackNSender {
         private int getacknum(DatagramPacket rcvpkt) {
             byte[] ack = rcvpkt.getData();
             int sequenceNumber = Integer.parseInt(String.valueOf(ack[rcvpkt.getLength() - 1]));
-            return sequenceNumber % 256;
+            return sequenceNumber % MAX_SEQUENCE_NUMBER;
         }
 
 
         private DatagramPacket make_pkt(int nextSequenceNumber, byte[] data) throws IOException {
             data[0] = (byte) nextSequenceNumber;
-            return new DatagramPacket(data,data.length, receiver, this.destinationPort);
+            int i =1;
+            boolean zero =false;
+            while (i<data.length && !zero){
+                if(data[i] == 0){
+                    zero = true;
+                }else{
+                    i++;
+                }
+            }
+            return new DatagramPacket(data,i, receiver, this.destinationPort);
         }
 
         private void send_pkt(DatagramPacket packet) throws IOException {

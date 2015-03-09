@@ -64,7 +64,6 @@ public class Receiver{
         private boolean rdt_rcv(DatagramPacket rcvpkt) throws IOException {
             boolean eof = false;
             byte[] data = extract(rcvpkt);
-            System.out.write(data);
             if(Arrays.equals(data, EOF.getBytes())){
                 eof=true;
                 sndpkt = makeEOFAcKPacket();
@@ -89,7 +88,6 @@ public class Receiver{
 
         private void deliver_data(byte[] data) throws IOException {
             if(data.length>1){
-                System.out.write(data);
                 this.outFile.write(data,1,data.length-1);
             }
         }
