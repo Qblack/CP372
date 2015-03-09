@@ -42,7 +42,7 @@ public final class Server {
         if (port< MIN_PORT || port > MAX_PORT){
             throw new Exception(PORT_ERROR);
         }
-        // Establish the listen socket.
+        // Establish the listen m_socket.
         ServerSocket sock = new ServerSocket(port);
         m_shapes = new Vector<>();
 

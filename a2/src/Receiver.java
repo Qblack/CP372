@@ -57,7 +57,7 @@ public class Receiver{
                 eof = rdt_rcv(rcvpkt);
             }
             outFile.close();
-            socket.close();
+            socket.disconnect();
 
         }
 
@@ -67,7 +67,7 @@ public class Receiver{
             System.out.write(data);
             if(Arrays.equals(data, EOF.getBytes())){
                 eof=true;
-                sndpkt = make_pkt(this.expectedseqnum,ACK);
+                sndpkt = makeEOFAcKPacket();
                 udt_send(sndpkt);
             }else{
                 deliver_data(data);
@@ -89,6 +89,7 @@ public class Receiver{
 
         private void deliver_data(byte[] data) throws IOException {
             if(data.length>1){
+                System.out.write(data);
                 this.outFile.write(data,1,data.length-1);
             }
         }
@@ -113,5 +114,20 @@ public class Receiver{
             byteData[byteData.length-1] = (byte) (expectedSeqNumber%128);
             return new DatagramPacket(byteData,byteData.length,this.senderAddress,this.senderPort);
         }
+
+        private DatagramPacket makeEOFAcKPacket(){
+            byte[] byteData = new byte[ACK.length()+EOF.length()];
+            int i=0;
+            for(byte b : ACK.getBytes()){
+                byteData[i]=b;
+                i++;
+            }
+            for(byte b : EOF.getBytes()){
+                byteData[i]=b;
+                i++;
+            }
+            return new DatagramPacket(byteData,byteData.length,this.senderAddress,this.senderPort);
+        }
+
     }
 }

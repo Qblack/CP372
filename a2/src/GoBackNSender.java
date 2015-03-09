@@ -1,10 +1,8 @@
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.*;
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -65,7 +63,7 @@ public class GoBackNSender {
             File fileHandle = new File(fileName);
             FileInputStream fileData = new FileInputStream(fileHandle);
 
-            this.sndpkt = new DatagramPacket[(int) Math.ceil(fileHandle.length()/ FILE_DATA_SIZE)+1];
+            this.sndpkt = new DatagramPacket[128];
 
             int bytesRead = 0;
             int totalBytes = (int) fileHandle.length();
@@ -83,8 +81,12 @@ public class GoBackNSender {
                     sent = rdt_send(data);
                     byte[] tobuff = new byte[PACKET_SIZE];
                     DatagramPacket receivedPacket = make_pkt(this.nextSeqNum, tobuff);
-                    this.socket.setSoTimeout(100);
-                    this.socket.receive(receivedPacket);
+                    this.socket.setSoTimeout(10000);
+                    try {
+                        this.socket.receive(receivedPacket);
+                    }catch (SocketTimeoutException e){
+                    }
+
                     rdt_rcv(receivedPacket);
 
                 }while(!sent);
@@ -92,6 +94,15 @@ public class GoBackNSender {
             }
 
             this.socket.send(this.eot);
+
+
+            byte[] tobuff;
+            do{
+                tobuff = new byte[6];
+                DatagramPacket receivedPacket = new DatagramPacket(tobuff,6);
+                this.socket.receive(receivedPacket);
+            }while(Arrays.equals("awkEOF".getBytes(),tobuff));
+
             this.socket.close();
             fileData.close();
             stop_timer();
@@ -105,7 +116,7 @@ public class GoBackNSender {
                 if(this.sendBase==this.nextSeqNum){
                     start_timer();
                 }
-                this.nextSeqNum = (this.nextSeqNum+1)%128;
+                this.nextSeqNum = this.nextSeqNum++;
                 return true;
             }
             return false;
@@ -113,8 +124,10 @@ public class GoBackNSender {
 
         private void timeout() throws IOException {
             start_timer();
-            for(int i=this.sendBase;i<this.nextSeqNum;i++){
+            int i = this.sendBase;
+            while(i < this.nextSeqNum){
                 send_pkt(this.sndpkt[i]);
+                i++;
             }
         }
 
@@ -130,7 +143,7 @@ public class GoBackNSender {
         private int getacknum(DatagramPacket rcvpkt) {
             byte[] ack = rcvpkt.getData();
             int sequenceNumber = Integer.parseInt(String.valueOf(ack[rcvpkt.getLength() - 1]));
-            return sequenceNumber % 128;
+            return sequenceNumber % 256;
         }
 
 
