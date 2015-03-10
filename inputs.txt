@@ -1,0 +1,12 @@
+﻿Sender
+ <host address of the receiver> 	127.0.0.1
+ <UDP port number used by the receiver to receive data from the sender>	5555
+ <UDP port number used by the sender to receive ACKs from the receiver>	5556
+ <name of the file to be transferred> 	../test_border.txt
+ <reliability number>
+
+Receiver
+ <host address of the sender> 		127.0.0.1
+ <UDP port number used by the sender to receive ACKs from the receiver>	5556
+ <UDP port number used by the receiver to receive data from the sender>	5555
+ <name of the file to write received data> test.txt

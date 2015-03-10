@@ -1,0 +1,69 @@
+Network Working Group                                     P. Mockapetris
+Request for Comments: 1034                                           ISI
+Obsoletes: RFCs 882, 883, 973                              November 1987
+
+
+                 DOMAIN NAMES - CONCEPTS AND FACILITIES
+
+
+
+1. STATUS OF THIS MEMO
+
+This RFC is an introduction to the Domain Name System (DNS), and omits
+many details which can be found in a companion RFC, "Domain Names -
+Implementation and Specification" [RFC-1035].  That RFC assumes that the
+reader is familiar with the concepts discussed in this memo.
+
+A subset of DNS functions and data types constitute an official
+protocol.  The official protocol includes standard queries and their
+responses and most of the Internet class data formats (e.g., host
+addresses).
+
+However, the domain system is intentionally extensible.  Researchers are
+continuously proposing, implementing and experimenting with new data
+types, query types, classes, functions, etc.  Thus while the components
+of the official protocol are expected to stay essentially unchanged and
+operate as a production service, experimental behavior should always be
+expected in extensions beyond the official protocol.  Experimental or
+obsolete features are clearly marked in these RFCs, and such information
+should be used with caution.
+
+The reader is especially cautioned not to depend on the values which
+appear in examples to be current or complete, since their purpose is
+primarily pedagogical.  Distribution of this memo is unlimited.
+
+2. INTRODUCTION
+
+This RFC introduces domain style names, their use for Internet mail and
+host address support, and the protocols and servers used to implement
+domain name facilities.
+
+2.1. The history of domain names
+
+The impetus for the development of the domain system was growth in the
+Internet:
+
+   - Host name to address mappings were maintained by the Network
+     Information Center (NIC) in a single file (HOSTS.TXT) which
+     was FTPed by all hosts [RFC-952, RFC-953].  The total network
+
+
+
+Mockapetris                                                     [Page 1]
+
+RFC 1034             Domain Concepts and Facilities        November 1987
+
+
+     bandwidth consumed in distributing a new version by this
+     scheme is proportional to the square of the number of hosts in
+     the network, and even when multiple levels of FTP are used,
+     the outgoing FTP load on the NIC host is considerable.
+     Explosive growth in the number of hosts didn't bode well for
+     the future.
+
+   - The network population was also changing in character.  The
+     timeshared hosts that made up the original ARPANET were being
+     replaced with local networks of workstations.  Local
+     organizations were administering their own names and
+     addresses, but had to wait for the NIC to change HOSTS.TXT to
+     make changes visible to the Internet at large.  Organizations

@@ -64,7 +64,6 @@ public class Receiver{
         private boolean rdt_rcv(DatagramPacket rcvpkt) throws IOException {
             boolean eof = false;
             byte[] data = extract(rcvpkt);
-            System.out.write(data);
             if(Arrays.equals(data, EOF.getBytes())){
                 eof=true;
                 sndpkt = make_pkt(this.expectedseqnum,ACK);

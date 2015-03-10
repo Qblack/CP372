@@ -30,9 +30,9 @@ public class GoBackNSender {
     }
 
     public static class Sender{
-        private  static final int FILE_DATA_SIZE = 60;
+        private  static final int FILE_DATA_SIZE = 124;
         private  static final int PACKET_SIZE = FILE_DATA_SIZE+1;
-        public static final int TIMEOUT = 400;
+        public static final int TIMEOUT = 100;
         private String destinationAddress;
         private int destinationPort;
         private int senderPort;
@@ -118,7 +118,7 @@ public class GoBackNSender {
         }
 
         private void rdt_rcv(DatagramPacket rcvpkt){
-            this.sendBase = getacknum(rcvpkt)+1;
+            this.sendBase = (getacknum(rcvpkt)+1)%128;
             if(this.sendBase==this.nextSeqNum){
                 stop_timer();
             }else{
