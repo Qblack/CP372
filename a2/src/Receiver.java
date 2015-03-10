@@ -68,7 +68,7 @@ public class Receiver{
                 eof=true;
                 sndpkt = makeEOFAcKPacket();
                 udt_send(sndpkt);
-            }else if(rcvpkt.getData()[0]==(this.expectedseqnum%128)){
+            }else if(rcvpkt.getData()[0]!=(this.expectedseqnum%128)){
                 default_receive();
             }else{
                 deliver_data(data);
