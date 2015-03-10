@@ -68,6 +68,8 @@ public class Receiver{
                 eof=true;
                 sndpkt = makeEOFAcKPacket();
                 udt_send(sndpkt);
+            }else if(rcvpkt.getData()[0]==(this.expectedseqnum%128)){
+                default_receive();
             }else{
                 deliver_data(data);
                 sndpkt = make_pkt(this.expectedseqnum,ACK);
@@ -83,6 +85,7 @@ public class Receiver{
 
 
         private void udt_send(DatagramPacket sndpkt) throws IOException {
+            System.out.println("ack" + sndpkt.getData()[3]);
             this.socket.send(sndpkt);
         }
 

@@ -2,7 +2,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.*;
-import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -30,7 +29,7 @@ public class GoBackNSender {
     public static class Sender{
         private  static final int FILE_DATA_SIZE = 124;
         private  static final int PACKET_SIZE = FILE_DATA_SIZE+1;
-        public static final int TIMEOUT = 1000;
+        public static final int TIMEOUT = 3600;
         private String destinationAddress;
         private int destinationPort;
         private int senderPort;
@@ -82,11 +81,11 @@ public class GoBackNSender {
                     sent = rdt_send(data);
                     byte[] tobuff = new byte[PACKET_SIZE];
                     DatagramPacket receivedPacket = make_pkt(this.nextSeqNum, tobuff);
-                    this.socket.setSoTimeout(100000);
-                    try {
+//                    this.socket.setSoTimeout(100000);
+//                    try {
                         this.socket.receive(receivedPacket);
-                    }catch (SocketTimeoutException e){
-                    }
+//                    }catch (SocketTimeoutException e){
+//                    }
 
                     rdt_rcv(receivedPacket);
 
@@ -111,13 +110,23 @@ public class GoBackNSender {
         }
 
         private boolean rdt_send(byte[] data) throws IOException, InterruptedException {
-            if(this.nextSeqNum<this.sendBase+this.windowSize){
+            if((this.sendBase+this.windowSize)>MAX_SEQUENCE_NUMBER){
+                if(this.nextSeqNum<(this.sendBase+this.windowSize)){
+                    this.sndpkt[this.nextSeqNum] = make_pkt(this.nextSeqNum, data);
+                    send_pkt(this.sndpkt[this.nextSeqNum]);
+                    if(this.sendBase==this.nextSeqNum){
+                        start_timer();
+                    }
+                    this.nextSeqNum = (this.nextSeqNum+1)% MAX_SEQUENCE_NUMBER;
+                    return true;
+                }
+            }else if(this.nextSeqNum<(this.sendBase+this.windowSize)) {
                 this.sndpkt[this.nextSeqNum] = make_pkt(this.nextSeqNum, data);
                 send_pkt(this.sndpkt[this.nextSeqNum]);
-                if(this.sendBase==this.nextSeqNum){
+                if (this.sendBase == this.nextSeqNum) {
                     start_timer();
                 }
-                this.nextSeqNum = (this.nextSeqNum+1)% MAX_SEQUENCE_NUMBER;
+                this.nextSeqNum = (this.nextSeqNum + 1) % MAX_SEQUENCE_NUMBER;
                 return true;
             }
             return false;
@@ -132,7 +141,7 @@ public class GoBackNSender {
                     i++;
                 }
             }else{
-                while(i < MAX_SEQUENCE_NUMBER){
+                while(i < Math.min((this.sendBase+this.windowSize),MAX_SEQUENCE_NUMBER)){
                     send_pkt(this.sndpkt[i]);
                     i++;
                 }
@@ -145,7 +154,7 @@ public class GoBackNSender {
         }
 
         private void rdt_rcv(DatagramPacket rcvpkt){
-            this.sendBase = getacknum(rcvpkt)+1;
+            this.sendBase = getacknum(rcvpkt)+1%MAX_SEQUENCE_NUMBER;
             if(this.sendBase==this.nextSeqNum){
                 stop_timer();
             }else{
@@ -201,6 +210,7 @@ public class GoBackNSender {
             if(this.timer!=null){
                 this.timer.cancel();
                 this.timer.purge();
+                this.timer = null;
             }
         }
 
