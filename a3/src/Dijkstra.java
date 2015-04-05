@@ -67,7 +67,7 @@ public class Dijkstra {
 	}
 	
 	
-	public static void determinePaths(ArrayList<Vertex> graph, Vertex start){
+	public static void calcPath(ArrayList<Vertex> graph, Vertex start){
 		start.minDist = 0;
 		
 		//visit each adjacent vertex of start in order of smallest to largest
@@ -76,11 +76,32 @@ public class Dijkstra {
 			//visit all edges of start vertex
 			for (Edge e:start.adjacent){
 				//distance to v = distance to u + distance from u to v
-				int dist = start.minDist + e.weight;
-	
-
+				int dist = v.minDist + e.weight;
+				if (dist<e.endNode.minDist){
+					e.endNode.minDist = dist;
+					e.endNode.prev = v;
+				}
 			}
 		}	
+	}
+	
+	public static ArrayList<Vertex> displayPathTo(Vertex lastNode){
+		//initialize path of vertices to take
+		ArrayList<Vertex> pathBack = new ArrayList();
+		Vertex v = lastNode;
+		while (v!=null) {
+			pathBack.add(v);
+			v = v.prev;
+		}
+		
+		//reverse order of back and return
+		ArrayList<Vertex> path = new ArrayList();
+		int num = pathBack.size();
+		for (int i=0;i<num;i++){
+			v = pathBack.remove(num-i);
+			path.add(i, v);
+		}
+		return path;
 	}
 	
 	/*
