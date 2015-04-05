@@ -11,12 +11,17 @@ public class Dijkstra {
 	 */
 	
 	//create class for each vertex in graph
-	public class Vertex{
+	static public class Vertex{
 		//define class variables
 		public int node;
-		public ArrayList<Edge> adjacent;
-		public int minDist = 2147483647;
+		public ArrayList<Edge> adjacent = new ArrayList();
+		public int minDist = 1111111;
 		public Vertex prev;
+	
+		//define constructor
+		public Vertex(int n){
+			node = n;
+		}
 		
 		//define class functions
 		public int getNode(){
@@ -26,10 +31,13 @@ public class Dijkstra {
 		public int getMin(Vertex v){
 			return Math.min(minDist,v.minDist);
 		}
+		public String toString(){
+			return "Node: " + (node+1);
+		}
 	}
 	
 	//create class for each edge in graph
-	public class Edge{
+	static public class Edge{
 		public Vertex endNode;
 		public int weight;
 		
@@ -48,36 +56,37 @@ public class Dijkstra {
 	//Orders a list of vertices from smallest to largest based on their minimum distances
 	public static ArrayList<Vertex> orderByMin(ArrayList<Vertex> vArr){
 		//initialize ordered list
+		ArrayList<Vertex> vArrCopy = (ArrayList<Vertex>) vArr.clone();
 		ArrayList<Vertex> ordered = new ArrayList<Vertex>();
 		//check each node in array
-		for (int i = 0; i<vArr.size();i++){
+		for (int i = 0; i<vArrCopy.size();i++){
 			//specify starting minV
-			Vertex minV = vArr.get(0);
+			Vertex minV = vArrCopy.get(0);
 			
-			for (Vertex v:vArr){
-				if (minV.minDist>v.minDist){
-					minV = vArr.get(vArr.indexOf(v));
+			for (Vertex v:vArrCopy){
+				if (minV.minDist > v.minDist){
+					minV = vArrCopy.get(vArrCopy.indexOf(v));
 				}
 			}
 			//remove minV from future checks as it is the current lowest
-			vArr.remove(minV);
+			vArrCopy.remove(minV);
 			ordered.add(i,minV);
 		}
 		return ordered;
 	}
 	
-	
+	//uses path costs to set what each vertices predecessor node is
 	public static void calcPath(ArrayList<Vertex> graph, Vertex start){
 		start.minDist = 0;
-		
+		ArrayList<Vertex> vCopy = (ArrayList<Vertex>) graph.clone();
 		//visit each adjacent vertex of start in order of smallest to largest
-		ArrayList<Vertex> orderedV = orderByMin(graph);
+		ArrayList<Vertex> orderedV = orderByMin(vCopy);
 		for(Vertex v:orderedV){
 			//visit all edges of start vertex
 			for (Edge e:start.adjacent){
 				//distance to v = distance to u + distance from u to v
 				int dist = v.minDist + e.weight;
-				if (dist<e.endNode.minDist){
+				if (dist < e.endNode.minDist){
 					e.endNode.minDist = dist;
 					e.endNode.prev = v;
 				}
@@ -85,6 +94,7 @@ public class Dijkstra {
 		}	
 	}
 	
+	//Displays vertex list to get to last node - use for forwarding table
 	public static ArrayList<Vertex> displayPathTo(Vertex lastNode){
 		//initialize path of vertices to take
 		ArrayList<Vertex> pathBack = new ArrayList();
@@ -98,7 +108,7 @@ public class Dijkstra {
 		ArrayList<Vertex> path = new ArrayList();
 		int num = pathBack.size();
 		for (int i=0;i<num;i++){
-			v = pathBack.remove(num-i);
+			v = pathBack.remove(num-i-1);
 			path.add(i, v);
 		}
 		return path;
@@ -112,24 +122,66 @@ public class Dijkstra {
 		
 		//get user input for n by n matrix
 		Scanner in = new Scanner(System.in);
-		System.out.println("What is the n by n size of this graph?");
-		int n = in.nextInt();
+		System.out.println("Enter Directed Graph");
+		int n = Integer.parseInt(in.nextLine());
 		
 		//create 2D array (graph)
 		int[][] g = new int[n][n];
+		ArrayList<Vertex> vertices = new ArrayList();
 		
-		//get each row from user and place in matrix
-		for (int i=1; i<=n;i++){
+		//get each row from user and place initialize corresponding vertex
+		for (int i=0; i<n;i++){
+			Vertex v = new Vertex(i);
+			vertices.add(v);
+			//get vertex corresponding edges from user input
 			String row = in.nextLine();
 			String[] vlist = row.split(" ");
+			
 			//place every edge in graph
-			for (int c=1;c<=n;i++){
+			for (int c=0;c<n;c++){
 				g[i][c] = Integer.parseInt(vlist[c]);
 			}
 		}
-		//run Dijkstra's algorithm from every node to find shortest path
+		in.close();
 		
-
+		//initialize edge objects
+		for(int i=0; i<n;i++){
+			Vertex v = vertices.get(i);
+			for (int c=0;c<n;c++){
+				if (g[i][c]!=-1 && g[i][c]!=0){
+					Edge e = new Edge(vertices.get(c),g[i][c]);
+					v.adjacent.add(e);
+				}
+			}
+		}
+		
+		for(Vertex v:vertices){
+			System.out.println("Node: "+(v.node+1));
+			for(Edge e:v.adjacent){
+				System.out.println("Edge: " + (v.node+1) + " to " + (e.endNode.node+1) + " weight=" + e.weight);
+			}
+			System.out.println();
+		}
+		
+		/*
+		//make function calls
+		ArrayList<Vertex> vert2 = (ArrayList<Vertex>) vertices.clone();
+		
+		for (Vertex x:vertices){
+			calcPath(vert2, x);
+			for (Vertex nLast:vert2){
+				ArrayList<Vertex> p = new ArrayList();
+				p = displayPathTo(nLast);
+				System.out.println("Path To: " + (nLast.node+1) + " From " + (x.node+1));
+				int t = 0;
+				for (Vertex v:p){
+					t++;
+					System.out.println("Step "+ t +": " + v.toString());
+				}
+				System.out.println();
+			}
+		}
+		*/
 	}
 
 }
