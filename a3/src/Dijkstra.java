@@ -1,4 +1,4 @@
-package blac_hage_a3;
+//package blac_hage_a3;
 
 import java.util.Scanner;
 import java.lang.Math;
@@ -158,7 +158,12 @@ public class Dijkstra {
 					ArrayList<Vertex> path = new ArrayList();
 					path = displayPathTo(end);
 					//print Fowarding Table and Cost
-					System.out.print((end.node+1) + "\t\t" + (path.get(1).node+1) + "\t\t" + end.minDist + "\n");
+					if (path.size()>1){
+						System.out.print((end.node+1) + "\t\t" + (path.get(1).node+1) + "\t\t" + end.minDist + "\n");
+					}
+					else{
+						System.out.print((end.node+1) + "\t\t" + "-1" + "\t\t" + "NA" + "\n");
+					}
 				}
 			}
 		}
