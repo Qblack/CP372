@@ -104,6 +104,34 @@ public class Dijkstra {
 		}
 	}
 	
+	//Dijkstras(g={v,e}, start)
+	public static String doDijkstras (ArrayList<Vertex> vertices, Vertex start){
+		ArrayList<Vertex> vert = (ArrayList<Vertex>) vertices.clone();
+		String output = "";
+		
+		reset(vertices);
+		calcPath(start);
+		
+		//loop through every possible end vertex
+		for (Vertex end: vert){
+			if (start.node == end.node){
+				output = output + (start.node+1) + "\t\t" + " - " + "\t\t" + 0 + "\n";
+			}
+			else{
+				ArrayList<Vertex> path = new ArrayList();
+				path = displayPathTo(end);
+				//print Fowarding Table and Cost
+				if (path.size()>1){
+					output = output + (end.node+1) + "\t\t" + (path.get(1).node+1) + "\t\t" + end.minDist + "\n";
+				}
+				else{
+					output = output + (end.node+1) + "\t\t" + "-1" + "\t\t" + "NA" + "\n";
+				}
+			}
+		}
+		return output;
+	}
+	
 	/*
 	 * Main
 	 */
@@ -144,28 +172,12 @@ public class Dijkstra {
 			}
 		}
 		//calculate path costs from every node
-		ArrayList<Vertex> vert = (ArrayList<Vertex>) vertices.clone();
+		String out = "";
 		for (Vertex start: vertices){
-			reset(vertices);
-			calcPath(start);
 			System.out.println("\nSource Node: " + (start.node+1));
 			System.out.println("Node \t Next Hop \t Path Cost");
-			for (Vertex end: vert){
-				if (start.node == end.node){
-					System.out.println((start.node+1) + "\t\t" + " - " + "\t\t" + 0);
-				}
-				else{
-					ArrayList<Vertex> path = new ArrayList();
-					path = displayPathTo(end);
-					//print Fowarding Table and Cost
-					if (path.size()>1){
-						System.out.print((end.node+1) + "\t\t" + (path.get(1).node+1) + "\t\t" + end.minDist + "\n");
-					}
-					else{
-						System.out.print((end.node+1) + "\t\t" + "-1" + "\t\t" + "NA" + "\n");
-					}
-				}
-			}
+			out = doDijkstras(vertices, start);
+			System.out.println(out);
 		}
 	}
 }
