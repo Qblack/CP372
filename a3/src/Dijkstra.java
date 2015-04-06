@@ -1,38 +1,33 @@
-//package blac_hage_a3;
+package blac_hage_a3;
 
 import java.util.Scanner;
 import java.lang.Math;
 import java.util.ArrayList;
+import java.util.PriorityQueue;
 
 
 public class Dijkstra {
+	public static final int MAX = 1111111;
 	/*
 	 * Classes
 	 */
 	
 	//create class for each vertex in graph
-	static public class Vertex{
+	static public class Vertex implements Comparable<Vertex>{
 		//define class variables
 		public int node;
 		public ArrayList<Edge> adjacent = new ArrayList();
-		public int minDist = 1111111;
+		public int minDist = MAX;
 		public Vertex prev;
 	
 		//define constructor
 		public Vertex(int n){
 			node = n;
 		}
-		
-		//define class functions
-		public int getNode(){
-			return node;
-		}
-		
-		public int getMin(Vertex v){
-			return Math.min(minDist,v.minDist);
-		}
-		public String toString(){
-			return "Node: " + (node+1);
+
+		//Comparator for priority Queue
+		public int compareTo(Vertex v){
+			return Double.compare(minDist,v.minDist);
 		}
 	}
 	
@@ -47,77 +42,71 @@ public class Dijkstra {
 			weight = w;
 		}
 	}
-	
-	
 	/*
 	 * Helper Functions
 	 */
 	
-	//Orders a list of vertices from smallest to largest based on their minimum distances
-	public static ArrayList<Vertex> orderByMin(ArrayList<Vertex> vArr){
-		//initialize ordered list
-		ArrayList<Vertex> vArrCopy = (ArrayList<Vertex>) vArr.clone();
-		ArrayList<Vertex> ordered = new ArrayList<Vertex>();
-		//check each node in array
-		for (int i = 0; i<vArrCopy.size();i++){
-			//specify starting minV
-			Vertex minV = vArrCopy.get(0);
-			
-			for (Vertex v:vArrCopy){
-				if (minV.minDist > v.minDist){
-					minV = vArrCopy.get(vArrCopy.indexOf(v));
-				}
-			}
-			//remove minV from future checks as it is the current lowest
-			vArrCopy.remove(minV);
-			ordered.add(i,minV);
-		}
-		return ordered;
-	}
-	
-	//uses path costs to set what each vertices predecessor node is
-	public static void calcPath(ArrayList<Vertex> graph, Vertex start){
+	//uses path costs to add vertices to PriorityQueue which stores them and reorganizes vertices
+	//based on their minimum distance (compareTo function)
+	public static void calcPath(Vertex start){
+		//initialize path to starting node
 		start.minDist = 0;
-		ArrayList<Vertex> vCopy = (ArrayList<Vertex>) graph.clone();
-		//visit each adjacent vertex of start in order of smallest to largest
-		ArrayList<Vertex> orderedV = orderByMin(vCopy);
-		for(Vertex v:orderedV){
-			//visit all edges of start vertex
-			for (Edge e:start.adjacent){
+		PriorityQueue<Vertex> vert = new PriorityQueue<Vertex>();
+		vert.add(start);
+		
+		//loop through every vertex, removing the minimum at the start each time
+		Vertex v = vert.poll();
+		while(v!=null){
+			//loop through all outbound edges
+			for (Edge e:v.adjacent){
 				//distance to v = distance to u + distance from u to v
+				//default distance is 1111111
+				Vertex next = e.endNode;
 				int dist = v.minDist + e.weight;
-				if (dist < e.endNode.minDist){
-					e.endNode.minDist = dist;
-					e.endNode.prev = v;
+				if (dist < next.minDist){
+					//next node has lower path cost so remove it, update costs, then reinsert next node 
+					//so that it is properly ordered
+					vert.remove(next);
+					next.minDist = dist;
+					next.prev = v;
+					vert.add(next);
 				}
 			}
-		}	
+			v = vert.poll();
+		}
 	}
 	
 	//Displays vertex list to get to last node - use for forwarding table
 	public static ArrayList<Vertex> displayPathTo(Vertex lastNode){
-		//initialize path of vertices to take
-		ArrayList<Vertex> pathBack = new ArrayList();
-		Vertex v = lastNode;
-		while (v!=null) {
-			pathBack.add(v);
-			v = v.prev;
-		}
+		//initialize vectors
+		ArrayList<Vertex> backPath = new ArrayList();
+		ArrayList<Vertex> fwdPath = new ArrayList();
 		
-		//reverse order of back and return
-		ArrayList<Vertex> path = new ArrayList();
-		int num = pathBack.size();
-		for (int i=0;i<num;i++){
-			v = pathBack.remove(num-i-1);
-			path.add(i, v);
+		//get predecessor node and add to back Path, then repeat until none left
+		while (lastNode!=null){
+			backPath.add(lastNode);
+			lastNode = lastNode.prev;
 		}
-		return path;
+		//reverse order of backPath and return result
+		int num = backPath.size()-1;
+		for (int i=0; i<=num; i++){
+			fwdPath.add(i, backPath.get(num-i));
+		}
+		return fwdPath;
+	}
+	
+	//resets vertices previouse links and min distances as to not interfere with future node
+	//path comparisons
+	public static void reset(ArrayList<Vertex> v){
+		for(Vertex node:v){
+			node.minDist = MAX;
+			node.prev = null;
+		}
 	}
 	
 	/*
 	 * Main
 	 */
-	
 	public static void main(String[] args) {
 		
 		//get user input for n by n matrix
@@ -154,34 +143,24 @@ public class Dijkstra {
 				}
 			}
 		}
-		
-		for(Vertex v:vertices){
-			System.out.println("Node: "+(v.node+1));
-			for(Edge e:v.adjacent){
-				System.out.println("Edge: " + (v.node+1) + " to " + (e.endNode.node+1) + " weight=" + e.weight);
-			}
-			System.out.println();
-		}
-		
-		/*
-		//make function calls
-		ArrayList<Vertex> vert2 = (ArrayList<Vertex>) vertices.clone();
-		
-		for (Vertex x:vertices){
-			calcPath(vert2, x);
-			for (Vertex nLast:vert2){
-				ArrayList<Vertex> p = new ArrayList();
-				p = displayPathTo(nLast);
-				System.out.println("Path To: " + (nLast.node+1) + " From " + (x.node+1));
-				int t = 0;
-				for (Vertex v:p){
-					t++;
-					System.out.println("Step "+ t +": " + v.toString());
+		//calculate path costs from every node
+		ArrayList<Vertex> vert = (ArrayList<Vertex>) vertices.clone();
+		for (Vertex start: vertices){
+			reset(vertices);
+			calcPath(start);
+			System.out.println("\nSource Node: " + (start.node+1));
+			System.out.println("Node \t Next Hop \t Path Cost");
+			for (Vertex end: vert){
+				if (start.node == end.node){
+					System.out.println((start.node+1) + "\t\t" + " - " + "\t\t" + 0);
 				}
-				System.out.println();
+				else{
+					ArrayList<Vertex> path = new ArrayList();
+					path = displayPathTo(end);
+					//print Fowarding Table and Cost
+					System.out.print((end.node+1) + "\t\t" + (path.get(1).node+1) + "\t\t" + end.minDist + "\n");
+				}
 			}
 		}
-		*/
 	}
-
 }
